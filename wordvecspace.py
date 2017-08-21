@@ -7,7 +7,7 @@ from ctypes import cdll, c_void_p
 
 import numpy as np
 import pandas as pd
-from numba import jit
+from numba import guvectorize
 
 cblas = cdll.LoadLibrary("/usr/lib/libopenblas.so")
 
@@ -33,8 +33,8 @@ class UnknownIndex(WordVecSpaceException):
     def __str__(self):
         return '"%s"' % self.index
 
-@jit
-def normalize_vectors(vectors, magnitudes):
+@guvectorize(['void(float32[:], float32[:])'], '(n) -> ()', nopython=True, target='parallel')
+def normalize_vectors(vec, m):
     '''
     Converts each vector in `vectors` into a
     unit vector and stores the magnitude in
@@ -42,24 +42,16 @@ def normalize_vectors(vectors, magnitudes):
     location
     '''
 
-    nvecs, dimensions = vectors.shape
+    _m = 0.0
+    for i in xrange(len(vec)):
+	_m += vec[i]**2
 
-    for vindex in xrange(nvecs):
-        v = vectors[vindex]
+    _m = np.sqrt(_m)
 
-        # compute magnitude of vector v
-        mag = 0.0
-        for d in xrange(dimensions):
-            mag += v[d] ** 2
+    for i in xrange(len(vec)):
+	vec[i] /= _m
 
-        magnitudes[vindex] = mag = sqrt(mag)
-
-        # convert v to unit vector (i.e. normalize it)
-        for d in xrange(dimensions):
-            if mag == 0.0:
-                continue
-
-            v[d] /= mag
+    m[0] = _m
 
 
 class WordVecSpace(object):
@@ -166,19 +158,13 @@ class WordVecSpace(object):
             if word < self.num_vectors:
                 return word
             else:
-                if raise_exc == True:
-                    raise UnknownIndex(word)
-                else:
-                    return -1
+                raise UnknownIndex(word)
 
         try:
             return self.word_indices[word]
 
         except KeyError:
-            if raise_exc == True:
-                raise UnknownWord(word)
-            else:
-                return -1
+            raise UnknownWord(word)
 
     def get_word_at_index(self, index):
 
@@ -257,8 +243,13 @@ class WordVecSpace(object):
 
         mag = np.ndarray(len(words_or_indices), dtype=np.float32)
 
-        words_or_indices = [self.get_word_index(w, raise_exc=False) for w in words_or_indices]
-        mag = [self.magnitudes[w] if w >= 0 else 0.0 for w in words_or_indices]
+        for i, w in enumerate(words_or_indices):
+            try:
+                windex = self.get_word_index(w)
+                mag[i] = self.magnitudes[windex]
+
+            except (UnknownIndex, UnknownWord):
+                mag[i] = 0.0
 
         return mag
 
