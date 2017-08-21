@@ -1,22 +1,12 @@
-# wordvecspace README.md
+# Word Vector Space Abstraction
 
-### To use wordvecspace library please install the following modules
+## Installation
 
 
-Install python-2.7 or above versions of python
+Install python-2.7
 
-Install numpy module
-$sudo pip install numpy
-
-Install pandas
-$sudo pip install pandas
-
-Install numba
-$sudo pip install numba
-
-Install libopenblas
-$sudo apt-get install libopenblas-dev
-
+sudo pip install numpy pandas numa
+sudo apt install libopenblas-dev
 
 ### Usage of wordvecspace library
 
