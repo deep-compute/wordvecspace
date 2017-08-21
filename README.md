@@ -5,7 +5,7 @@
 
 Install python-2.7
 
-sudo pip install numpy pandas numa
+sudo pip install numpy pandas numba
 sudo apt install libopenblas-dev
 
 ### Usage of wordvecspace library
