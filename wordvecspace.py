@@ -102,7 +102,7 @@ class WordVecSpace(object):
 
     def load(self):
         vec_fpath = os.path.join(self.data_dir, self.VECTOR_FNAME)
-	self.vectors = np.load(vec_fpath)
+        self.vectors = np.load(vec_fpath)
 
         vocab_fpath = os.path.join(self.data_dir, self.VOCAB_FNAME)
         vocab_file = open(vocab_fpath)
@@ -152,7 +152,7 @@ class WordVecSpace(object):
         '''
         return word in self.word_indices
 
-    def get_word_index(self, word, raise_exc=True):
+    def get_word_index(self, word, raise_exc=False):
         '''
         if `word` is an integer already
         and it is a valid index (i.e. in range)
@@ -160,14 +160,14 @@ class WordVecSpace(object):
 
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
 	>>> wv.load()
-	>>> print wv.get_word_index("india", raise_exc=False)
+	>>> print wv.get_word_index("india")
         509
+        >>> print wv.get_word_index("inidia")
+        None
         >>> print wv.get_word_index("inidia", raise_exc=True) # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         ...
         wordvecspace.UnknownWord: "inidia"
-        >>> print wv.get_word_index("inidia", raise_exc=False)
-        None
         '''
 
         if isinstance(word, int):
@@ -183,11 +183,11 @@ class WordVecSpace(object):
             if raise_exc == True:
                 raise UnknownWord(word)
 
-    def get_word_at_index(self, index, raise_exc=True):
+    def get_word_at_index(self, index, raise_exc=False):
         '''
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
         >>> wv.load()
-	>>> print wv.get_word_at_index(509, raise_exc=False)
+	>>> print wv.get_word_at_index(509)
 	india
         '''
 
@@ -198,18 +198,18 @@ class WordVecSpace(object):
             if raise_exc == True:
                 raise UnknownIndex(index)
 
-    def get_word_vector(self, word_or_index, normalized=False, raise_exc=True):
+    def get_word_vector(self, word_or_index, normalized=False, raise_exc=False):
         '''
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
         >>> wv.load()
-	>>> print wv.get_word_vector('india', raise_exc=False)
+	>>> print wv.get_word_vector('india')
         [-6.44819974899292 -2.163585662841797 5.727677345275879 -3.7746448516845703
          3.5829529762268066]
 
-        >>> print wv.get_word_vector(509, normalized=True, raise_exc=False)
+        >>> print wv.get_word_vector(509, normalized=True)
         [-0.62585545 -0.20999533  0.55592233 -0.36636305  0.34775764]
 
-        >>> print wv.get_word_vector('inidia', normalized=True, raise_exc=False)
+        >>> print wv.get_word_vector('inidia', normalized=True)
         [0.0 0.0 0.0 0.0 0.0]
         '''
 
@@ -222,21 +222,22 @@ class WordVecSpace(object):
             norm_vec = pd.Series(self.vectors[index])
             return np.array((norm_vec * self.magnitudes[index]), dtype=pd.Series) if index is not None else np.array(self.num_dimensions * [0.0], dtype=pd.Series)
 
-    def get_vector_magnitudes(self, words_or_indices, raise_exc=True):
+    def get_vector_magnitudes(self, words_or_indices, raise_exc=False):
         '''
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
         >>> wv.load()
 
-        >>> print wv.get_vector_magnitudes(["hi", "india"], raise_exc=False)
+        >>> print wv.get_vector_magnitudes(["hi", "india"])
         [  8.79479218  10.30301762]
+
+        >>> print wv.get_vector_magnitudes(["inidia", "india"])
+        [  0.          10.30301762]
 
         >>> print wv.get_vector_magnitudes(["inidia", "india"], raise_exc=True) # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         ...
         wordvecspace.UnknownWord: "inidia"
 
-        >>> print wv.get_vector_magnitudes(["inidia", "india"], raise_exc=False)
-        [  0.          10.30301762]
         '''
 
         if not isinstance(words_or_indices, (tuple, list)):
@@ -250,39 +251,39 @@ class WordVecSpace(object):
 
         return mag
 
-    def get_word_occurrences(self, word_or_index, raise_exc=True):
+    def get_word_occurrences(self, word_or_index, raise_exc=False):
         '''
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
         >>> wv.load()
-        >>> print wv.get_word_occurrences(5327, raise_exc=False)
+        >>> print wv.get_word_occurrences(5327)
         297
 
-        >>> print wv.get_word_occurrences("india", raise_exc=False)
+        >>> print wv.get_word_occurrences("india")
         3242
 
-        >>> print wv.get_word_occurrences("inidia", raise_exc=False)
+        >>> print wv.get_word_occurrences("inidia")
         None
         '''
 
         index = self.get_word_index(word_or_index, raise_exc)
         return self.word_occurrences[index] if index is not None else None
 
-    def get_word_vectors(self, words_or_indices, raise_exc=True):
+    def get_word_vectors(self, words_or_indices, raise_exc=False):
         '''
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
         >>> wv.load()
-	>>> print wv.get_word_vectors(["hi", "india"], raise_exc=False)
+	>>> print wv.get_word_vectors(["hi", "india"])
         [[ 0.24728754  0.25350514 -0.32058391  0.80575693  0.35009396]
          [-0.62585545 -0.20999533  0.55592233 -0.36636305  0.34775764]]
 
+        >>> print wv.get_word_vectors(["hi", "inidia"])
+        [[ 0.24728754  0.25350514 -0.32058391  0.80575693  0.35009396]
+         [ 0.          0.          0.          0.          0.        ]]
         >>> print wv.get_word_vectors(["hi", "inidia"], raise_exc=True) # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         ...
         wordvecspace.UnknownWord: "inidia"
 
-        >>> print wv.get_word_vectors(["hi", "inidia"], raise_exc=False)
-        [[ 0.24728754  0.25350514 -0.32058391  0.80575693  0.35009396]
-         [ 0.          0.          0.          0.          0.        ]]
         '''
 
         n = len(words_or_indices)
@@ -294,18 +295,18 @@ class WordVecSpace(object):
 
         return wmat
 
-    def get_distance(self, word1, word2, raise_exc=True):
+    def get_distance(self, word1, word2, raise_exc=False):
         '''
         Get cosine distance between two words
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
         >>> wv.load()
-	>>> print wv.get_distance(250, "india", raise_exc=False)
+	>>> print wv.get_distance(250, "india")
 	-0.163976
         '''
         return np.dot(self.get_word_vector(word1, normalized=True, raise_exc=raise_exc),
                 self.get_word_vector(word2, normalized=True, raise_exc=raise_exc).T)
 
-    def get_distances(self, row_words, col_words=None, raise_exc=True):
+    def get_distances(self, row_words, col_words=None, raise_exc=False):
         '''
         get_distances(word)
         get_distances(words)
@@ -313,26 +314,26 @@ class WordVecSpace(object):
         get_distances(words_x, words_y)
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
         >>> wv.load()
-	>>> print wv.get_distances("for", ["to", "for", "india"], raise_exc=False)
+	>>> print wv.get_distances("for", ["to", "for", "india"])
         [[ 0.85009682]
          [ 1.00000012]
          [-0.38545406]]
-        >>> print wv.get_distances("for", ["to", "for", "inidia"], raise_exc=False)
+        >>> print wv.get_distances("for", ["to", "for", "inidia"])
         [[ 0.85009682]
          [ 1.00000012]
          [ 0.        ]]
 
-	>>> print wv.get_distances(["india", "for"], ["to", "for", "usa"], raise_exc=False)
+	>>> print wv.get_distances(["india", "for"], ["to", "for", "usa"])
         [[-0.18296985 -0.38545409  0.51620466]
          [ 0.85009682  1.00000012 -0.49754807]]
 
-	>>> print wv.get_distances(["india", "usa"], raise_exc=False)
+	>>> print wv.get_distances(["india", "usa"])
         [[-0.49026281  0.57980162  0.73099834 ..., -0.20406421 -0.35388517
            0.38457203]
          [-0.80836529  0.04589185 -0.16784868 ...,  0.4037039  -0.04579565
           -0.16079855]]
 
-	>>> print wv.get_distances(["andhra"], raise_exc=False)
+	>>> print wv.get_distances(["andhra"])
         [[-0.3432439   0.42185491  0.76944059 ..., -0.09365848 -0.13691582
            0.57156253]]
         '''
