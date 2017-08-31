@@ -205,10 +205,8 @@ class WordVecSpace(object):
 	>>> print wv.get_word_vector('india')
         [-6.44819974899292 -2.163585662841797 5.727677345275879 -3.7746448516845703
          3.5829529762268066]
-
         >>> print wv.get_word_vector(509, normalized=True)
         [-0.62585545 -0.20999533  0.55592233 -0.36636305  0.34775764]
-
         >>> print wv.get_word_vector('inidia', normalized=True)
         [0.0 0.0 0.0 0.0 0.0]
         '''
@@ -226,13 +224,10 @@ class WordVecSpace(object):
         '''
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
         >>> wv.load()
-
         >>> print wv.get_vector_magnitudes(["hi", "india"])
         [  8.79479218  10.30301762]
-
         >>> print wv.get_vector_magnitudes(["inidia", "india"])
         [  0.          10.30301762]
-
         >>> print wv.get_vector_magnitudes(["inidia", "india"], raise_exc=True) # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         ...
@@ -256,10 +251,8 @@ class WordVecSpace(object):
         >>> wv.load()
         >>> print wv.get_word_occurrences(5327)
         297
-
         >>> print wv.get_word_occurrences("india")
         3242
-
         >>> print wv.get_word_occurrences("inidia")
         None
         '''
@@ -274,7 +267,6 @@ class WordVecSpace(object):
 	>>> print wv.get_word_vectors(["hi", "india"])
         [[ 0.24728754  0.25350514 -0.32058391  0.80575693  0.35009396]
          [-0.62585545 -0.20999533  0.55592233 -0.36636305  0.34775764]]
-
         >>> print wv.get_word_vectors(["hi", "inidia"])
         [[ 0.24728754  0.25350514 -0.32058391  0.80575693  0.35009396]
          [ 0.          0.          0.          0.          0.        ]]
@@ -320,17 +312,14 @@ class WordVecSpace(object):
         [[ 0.85009682]
          [ 1.00000012]
          [ 0.        ]]
-
 	>>> print wv.get_distances(["india", "for"], ["to", "for", "usa"])
         [[-0.18296985 -0.38545409  0.51620466]
          [ 0.85009682  1.00000012 -0.49754807]]
-
 	>>> print wv.get_distances(["india", "usa"])
         [[-0.49026281  0.57980162  0.73099834 ..., -0.20406421 -0.35388517
            0.38457203]
          [-0.80836529  0.04589185 -0.16784868 ...,  0.4037039  -0.04579565
           -0.16079855]]
-
 	>>> print wv.get_distances(["andhra"])
         [[-0.3432439   0.42185491  0.76944059 ..., -0.09365848 -0.13691582
            0.57156253]]

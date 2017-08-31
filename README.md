@@ -163,5 +163,5 @@ $ tar xvzf small_test_data.tgz
 $ export WORDVECSPACE_DATADIR="/home/ram/small_test_data"
 
 # Run doctest
-python -m doctest -v wordvecspace.py
+$ python -m doctest -v wordvecspace.py
 ```
