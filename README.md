@@ -1,145 +1,157 @@
-# Word Vector Space Abstraction
+# Word Vector Space
+
+A python module that helps in loading and performing operations on word vector spaces created using Google's Word2vec tool.
 
 ## Installation
 
-Install python-2.7
+> Prerequisites: Python2.7
 
+```bash=!
 sudo pip install numpy pandas numba
-sudo apt install libopenblas-dev
+sudo apt install libopenblas-base
+```
 
-
-### Usage of wordvecspace library
-
-#### Export the path of data files to the environment variables
-$export data_dir="/home/ram/alpha/data/w2v_new_Google/shard_0"
-$python
+## Usage
 
 ```python=!
 
-#Import classes from wordvecspace library
->>>from wordvecspace import WordVecSpace, UnknownWord, UnknownIndex
+>>> from wordvecspace import WordVecSpace, UnknownWord, UnknownIndex
 
-#Read the path of vectors.npy and VOCAB.txt from environment variables
->>>data_dir = os.environ['data_dir']
+# Load the data (Vector and Vocab information)
+>>> wv = WordVecSpace('/path/to/data/')
+>>> wv.load()
 
-#Create Instace for WordVecSpace
->>>wv = WordVecSpace(data_dir)
-
-
-#Load the data files into memory
->>>wv.load()
-
-#Check word exist or not in wordvecspce
->>>print wv.does_word_exist("india")
+# Check if a word exists or not in the word vector space
+>>> print wv.does_word_exist("india")
 True
 
->>>print wv.does_word_exist("India")
+>>> print wv.does_word_exist("inidia")
 False
 
+# Get the index of a word
+>>> print wv.get_word_index("india", raise_exc=False)
+509
 
-#Get Index of the word
->>> try:
-...     print wv.get_word_index("iskjf4s")
-... except UnknownWord, e:
-...     print "Word %s was not found" % e.word
-... 
-Word iskjf4s was not found
->>> try:
-...     print wv.get_word_index("for")
-... except UnknownWord, e:
-...     print "Word %s was not found" % e.word
-... 
-14
+>>> print wv.get_word_index("inidia", raise_exc=False)
+None
 
+>>> print wv.get_word_index("inidia", raise_exc=True)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "wordvecspace.py", line 186, in get_word_index
+    raise UnknownWord(word)
+wordvecspace.UnknownWord: "inidia"
 
-#Get vectors for given word or index
->>> try:
-...     print wv.get_word_vector(10, normalized=False)
-... except UnknownIndex, e:
-...     print "Index %d was not found" % e.index
-...
-[-3.2972147464752197 0.039462678134441376 0.7405596971511841
- 5.008091926574707 0.8998156785964966]
+# Get vector for given word or index
 
->>> try:
-...     print wv.get_word_vector(10, normalized=True)
-... except UnknownIndex, e:
-...     print "Index %d was not found" % e.index
-... 
-[-0.53978574  0.00646042  0.12123673  0.8198728   0.14730847]
+# Get the word vector for a word india
+>>> print wv.get_word_vector("india", raise_exc=False)
+[-6.44819974899292 -2.163585662841797 5.727677345275879 -3.7746448516845703 3.5829529762268066]
 
+# Get the unit word vector for a word india
+>>> print wv.get_word_vector("india", normalized=True, raise_exc=False)
+[-0.62585545 -0.20999533  0.55592233 -0.36636305  0.34775764]
 
+# Get the unit vector for a word inidia.
+>>> print wv.get_word_vector('inidia', normalized=True, raise_exc=True)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "wordvecspace.py", line 219, in get_word_vector
+    index = self.get_word_index(word_or_index, raise_exc)
+  File "wordvecspace.py", line 184, in get_word_index
+    raise UnknownWord(word)
+wordvecspace.UnknownWord: "inidia"
 
-#Get Word using Index
->>> try:
-...     print wv.get_word_at_index(10)
-... except UnknownIndex, e:
-...     print "Index %d was not in the range" % e.index
-... 
-two
+# Get the unit vector for a word inidia. If the word is not present it simply returns zeros if raise_exc is False.
+>>> print wv.get_word_vector('inidia', normalized=True, raise_exc=False)
+[0.0 0.0 0.0 0.0 0.0]
 
+# Get Word at Index 509
+>>> print wv.get_word_at_index(509, raise_exc=False)
+india
 
+# Get occurrences of the word "india"
+>>> print wv.get_word_occurrences("india", raise_exc=False)
+3242
 
-#Get occurrences of word
->>> print wv.get_word_occurrences(5327)
-297
-
->>> try:
-...     print wv.get_word_occurrences("to")
-... except UnknownWord, e:
-...     print "Word %s was not found" % e.word
+# Get occurrences of the word "to"
+>>> print wv.get_word_occurrences("to", raise_exc=False)
 316376
 
+# Get occurrences of the word inidia
+>>> print wv.get_word_occurrences("inidia", raise_exc=False)
+None
 
-#Get Vector magnitude
->>> print wv.get_vector_magnitudes(["hi", 500])
-[ 8.79479218  8.47650623]
+# Get Vector magnitude of the word india
+>>> print wv.get_vector_magnitudes("india", raise_exc=False)
+8.79479218
+# In above, you can alternatively pass the index of "india" instead of the word itself
 
->>> print wv.get_vector_magnitudes(["hfjsjfi", 500])
-[ 0.          8.47650623]
+>>> print wv.get_vector_magnitudes(["india", "usa"], raise_exc=False)
+[ 10.30301762   7.36207819]
 
-
-#Get vectors for list of words
->>> print wv.get_word_vectors(["hi", "india"])
-[[ 0.24728754  0.25350514 -0.32058391  0.80575693  0.35009396]
+>>> print wv.get_vector_magnitudes(["inidia", "usa"], raise_exc=False)
+[ 0.          7.36207819]
+	
+# Get vectors for list of words
+>>> print wv.get_word_vectors(["usa", "india"], raise_exc=False)
+[[-0.72164571 -0.05566886  0.41082662  0.54941767  0.07409521]
  [-0.62585545 -0.20999533  0.55592233 -0.36636305  0.34775764]]
 
+# Get distance between two words using word or index
+>>> print wv.get_distance("india", "usa", raise_exc=False)
+0.516205
 
-#Get distance between two words using word or index
->>> print wv.get_distance(250, 500)
--0.288146
-
->>> print wv.get_distance(250, "india")
+>>> print wv.get_distance(250, "india", raise_exc=False)
 -0.163976
 
-
-#Get distance between list of words
->>> print wv.get_distances("for", ["to", "for", "india"])
+# Get distance between list of words
+>>> print wv.get_distances("for", ["to", "for", "india"], raise_exc=False)
 [[ 0.85009682]
  [ 1.00000012]
  [-0.38545406]]
 
+>>> print wv.get_distances("for", ["to", "for", "inidia"], raise_exc=False)
+[[ 0.85009682]
+ [ 1.00000012]
+ [ 0.        ]]
 
->>> print wv.get_distances(["india", "for"], ["to", "for", "usa"])
+>>> print wv.get_distances(["india", "for"], ["to", "for", "usa"], raise_exc=False)
 [[-0.18296985 -0.38545409  0.51620466]
  [ 0.85009682  1.00000012 -0.49754807]]
 
-
-#Get distance between list of words with all words in the word vector space
->>> print wv.get_distances(["india", "usa"])
+# Get distance between list of words with all words in the word vector space
+>>> print wv.get_distances(["india", "usa"], raise_exc=False)
 [[-0.49026281  0.57980162  0.73099834 ..., -0.20406421 -0.35388517
    0.38457203]
  [-0.80836529  0.04589185 -0.16784868 ...,  0.4037039  -0.04579565
   -0.16079855]]
 
-
->>> print wv.get_distances(["andhra"])
+>>> print wv.get_distances(["andhra"], raise_exc=False)
 [[-0.3432439   0.42185491  0.76944059 ..., -0.09365848 -0.13691582
    0.57156253]]
 
+# Get nearest neighbours for given word or index
+>>> print wv.get_nearest_neighbors("india", 20)
+... 
+Int64Index([  509,   486, 14208, 20639,  8573,  3389,  5226, 20919, 10172,
+             6866,  9772, 24149, 13942,  1980, 20932, 28413, 17910,  2196,
+            28738, 20855],
+           dtype='int64')
+```
 
-#Get nearest neighbours for given word or index
->>> print wv.get_nearest_neighbors(374, 20)
-Int64Index([  374, 19146, 45990, 61134,  7975, 15522, 42578, 37966,  5326, 11644, 46233, 12635, 30945, 57543, 12802, 30845,  4601,  5847, 23795, 24323], dtype='int64')
+## Running tests
 
- ```
+```bash=!
+# Download the data files
+$ wget 'https://s3.amazonaws.com/deepcompute-public/data/wordvecspace/small_test_data.tgz'
+
+# Extract downloaded small_test_data.tgz file
+$ tar xvzf small_test_data.tgz
+
+# Export the path of data files to the environment variables
+$ export WORDVECSPACE_DATADIR="/home/ram/small_test_data"
+
+# Run doctest
+python -m doctest -v wordvecspace.py
+```
