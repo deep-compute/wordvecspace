@@ -53,7 +53,7 @@ wordvecspace.UnknownWord: "inidia"
 [-0.62585545 -0.20999533  0.55592233 -0.36636305  0.34775764]
 
 # Get the unit vector for a word inidia.
-    >>> print wv.get_word_vector('inidia', normalized=True, raise_exc=True)
+>>> print wv.get_word_vector('inidia', normalized=True, raise_exc=True)
 Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
   File "wordvecspace.py", line 219, in get_word_vector
@@ -70,11 +70,11 @@ wordvecspace.UnknownWord: "inidia"
 >>> print wv.get_word_at_index(509)
 india
 
-# Get occurrences of the word "india"
+# Get occurrences of the word india
 >>> print wv.get_word_occurrences("india")
 3242
 
-# Get occurrences of the word "to"
+# Get occurrences of the word to
 >>> print wv.get_word_occurrences("to")
 316376
 

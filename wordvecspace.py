@@ -237,7 +237,6 @@ class WordVecSpace(object):
         Traceback (most recent call last):
         ...
         wordvecspace.UnknownWord: "inidia"
-
         '''
 
         if not isinstance(words_or_indices, (tuple, list)):
@@ -283,7 +282,6 @@ class WordVecSpace(object):
         Traceback (most recent call last):
         ...
         wordvecspace.UnknownWord: "inidia"
-
         '''
 
         n = len(words_or_indices)
