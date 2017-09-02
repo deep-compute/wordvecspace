@@ -291,9 +291,9 @@ class WordVecSpace(object):
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
         >>> wv.load()
 	>>> print wv.get_distance(250, "india")
-	-0.163976
+	1.16397565603
         '''
-        return np.dot(self.get_word_vector(word1, normalized=True, raise_exc=raise_exc),
+        return 1 - np.dot(self.get_word_vector(word1, normalized=True, raise_exc=raise_exc),
                 self.get_word_vector(word2, normalized=True, raise_exc=raise_exc).T)
 
     def get_distances(self, row_words, col_words=None, raise_exc=False):
@@ -305,24 +305,24 @@ class WordVecSpace(object):
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
         >>> wv.load()
 	>>> print wv.get_distances("for", ["to", "for", "india"])
-        [[ 0.85009682]
-         [ 1.00000012]
-         [-0.38545406]]
+        [[  1.49903178e-01]
+         [ -1.19209290e-07]
+         [  1.38545406e+00]]
         >>> print wv.get_distances("for", ["to", "for", "inidia"])
-        [[ 0.85009682]
-         [ 1.00000012]
-         [ 0.        ]]
+        [[  1.49903178e-01]
+         [ -1.19209290e-07]
+         [  1.00000000e+00]]
 	>>> print wv.get_distances(["india", "for"], ["to", "for", "usa"])
-        [[-0.18296985 -0.38545409  0.51620466]
-         [ 0.85009682  1.00000012 -0.49754807]]
+        [[  1.18296981e+00   1.38545406e+00   4.83795345e-01]
+         [  1.49903178e-01  -1.19209290e-07   1.49754810e+00]]
 	>>> print wv.get_distances(["india", "usa"])
-        [[-0.49026281  0.57980162  0.73099834 ..., -0.20406421 -0.35388517
-           0.38457203]
-         [-0.80836529  0.04589185 -0.16784868 ...,  0.4037039  -0.04579565
-          -0.16079855]]
+        [[ 1.49026275  0.42019838  0.26900166 ...,  1.20406425  1.35388517
+           0.61542797]
+         [ 1.80836535  0.95410818  1.16784871 ...,  0.59629607  1.04579568
+           1.16079855]]
 	>>> print wv.get_distances(["andhra"])
-        [[-0.3432439   0.42185491  0.76944059 ..., -0.09365848 -0.13691582
-           0.57156253]]
+        [[ 1.34324384  0.57814509  0.23055941 ...,  1.09365845  1.1369158
+           0.42843747]]
         '''
 
         only_single_row_word = False
@@ -412,7 +412,7 @@ class WordVecSpace(object):
 			     mat_c.ctypes.data_as(c_void_p),
 			     len(mat_b))
 
-        return mat_c
+        return 1 - mat_c
 
     DEFAULT_K = 512
 
@@ -432,6 +432,6 @@ class WordVecSpace(object):
         distances = distances.reshape((len(distances),))
 
         distances = pd.Series(distances)
-        distances = distances.nlargest(k)
+        distances = distances.nsmallest(k)
 
         return distances.keys()

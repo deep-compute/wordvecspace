@@ -110,36 +110,36 @@ wordvecspace.UnknownWord: "inidia"
 
 # Get distance between two words using word or index
 >>> print wv.get_distance("india", "usa")
-0.516205
+0.48379534483
 
 >>> print wv.get_distance(250, "india")
--0.163976
+1.16397565603
 
 # Get distance between list of words
 >>> print wv.get_distances("for", ["to", "for", "india"])
-[[ 0.85009682]
- [ 1.00000012]
- [-0.38545406]]
+[[  1.49903178e-01]
+ [ -1.19209290e-07]
+ [  1.38545406e+00]]
 
 >>> print wv.get_distances("for", ["to", "for", "inidia"])
-[[ 0.85009682]
- [ 1.00000012]
- [ 0.        ]]
+[[  1.49903178e-01]
+ [ -1.19209290e-07]
+ [  1.00000000e+00]]
 
 >>> print wv.get_distances(["india", "for"], ["to", "for", "usa"])
-[[-0.18296985 -0.38545409  0.51620466]
- [ 0.85009682  1.00000012 -0.49754807]]
+[[  1.18296981e+00   1.38545406e+00   4.83795345e-01]
+ [  1.49903178e-01  -1.19209290e-07   1.49754810e+00]]
 
 # Get distance between list of words with all words in the word vector space
 >>> print wv.get_distances(["india", "usa"])
-[[-0.49026281  0.57980162  0.73099834 ..., -0.20406421 -0.35388517
-   0.38457203]
- [-0.80836529  0.04589185 -0.16784868 ...,  0.4037039  -0.04579565
-  -0.16079855]]
+[[ 1.49026275  0.42019838  0.26900166 ...,  1.20406425  1.35388517
+   0.61542797]
+ [ 1.80836535  0.95410818  1.16784871 ...,  0.59629607  1.04579568
+   1.16079855]]
 
 >>> print wv.get_distances(["andhra"])
-[[-0.3432439   0.42185491  0.76944059 ..., -0.09365848 -0.13691582
-   0.57156253]]
+[[ 1.34324384  0.57814509  0.23055941 ...,  1.09365845  1.1369158
+   0.42843747]]
 
 # Get nearest neighbours for given word or index
 >>> print wv.get_nearest_neighbors("india", 20)
