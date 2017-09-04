@@ -14,9 +14,9 @@ from numba import guvectorize
 # $export WORDVECSPACE_DATADIR=/path/to/data/
 DATADIR_ENV_VAR = os.environ.get('WORDVECSPACE_DATADIR', ' ')
 
-# $export WORDVECSPACE_BLAS_FPATH=/usr/lib/libopenblas.so
+# $export WORDVECSPACE_BLAS_FPATH=/usr/lib/libopenblas.so.0
 BLAS_LIBRARY_FPATH = os.environ.get('WORDVECSPACE_BLAS_FPATH',
-        '/usr/lib/libopenblas.so')
+        '/usr/lib/libopenblas.so.0')
 cblas = cdll.LoadLibrary(BLAS_LIBRARY_FPATH)
 
 # Some OpenBlas constants
@@ -434,4 +434,3 @@ class WordVecSpace(object):
         distances = pd.Series(distances)
         distances = distances.nsmallest(k)
 
-        return distances.keys()
