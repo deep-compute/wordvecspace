@@ -2,7 +2,7 @@ language: python
 python:
 - '2.7'
 script:
-- touch foo
+- "wordvecspace"
 deploy:
   matrix:
   # pypitest
