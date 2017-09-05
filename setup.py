@@ -26,7 +26,7 @@ version = '0.2'
 setup(
     name="wordvecspace",
     version=version,
-    description="Simple and opiniated way to build APIs in Python",
+    description="A python module that helps in loading and performing operations on word vector spaces created using Google's Word2vec tool.",
     long_description=long_description,
     keywords='wordvecspace',
     author='Deep Compute, LLC',
