@@ -6,7 +6,6 @@ install:
 script:
   - echo "no tests yet"
 deploy:
-  matrix:
   # pypitest
   - provider: pypi
     distributions: "sdist bdist_wheel"
