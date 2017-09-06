@@ -1,1 +1,1 @@
-from wordvecspace.cuda import WordVecSpace
+from wordvecspace import WordVecSpace
