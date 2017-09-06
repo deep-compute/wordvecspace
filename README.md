@@ -1,4 +1,4 @@
-# word vector space 
+# word vector space
 
 A python module that helps in loading and performing operations on word vector spaces created using Google's Word2vec tool over GPU and  CPU
 
@@ -15,7 +15,7 @@ git clone "https://github.com/lebedov/scikit-cuda.git"
 
 ```python=!
 # GPU
->>> from wordvecspace.cuda import WordVecSpace 
+>>> from wordvecspace.cuda import WordVecSpace
 
 # CPU
 >>> from wordvecspace import WordVecSpace
