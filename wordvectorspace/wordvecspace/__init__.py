@@ -1,1 +1,0 @@
-from wordvecspace import WordVecSpace
