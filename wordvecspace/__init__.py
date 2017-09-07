@@ -1,1 +1,1 @@
-from wordvecspace import WordVecSpace, UnknownWord, UnknownIndex
+from wordvecspace import WordVecSpace

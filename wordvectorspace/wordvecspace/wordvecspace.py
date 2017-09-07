@@ -58,12 +58,12 @@ def normalize_vectors(vec, m):
 
     _m = 0.0
     for i in xrange(len(vec)):
-	      _m += vec[i]**2
+	_m += vec[i]**2
 
     _m = np.sqrt(_m)
 
     for i in xrange(len(vec)):
-	      vec[i] /= _m
+	vec[i] /= _m
 
     m[0] = _m
 
@@ -90,7 +90,6 @@ class WordVecSpace(object):
         # One dimensional array holding magnitudes of vectors
         self.magnitudes = None
 
-
     def _make_array(self, shape, dtype):
         return np.ndarray(shape, dtype)
 
@@ -98,7 +97,7 @@ class WordVecSpace(object):
         return np.dot(v1, v2)
 
     def _perform_sgemv(self, mat, v, vec_out, nvecs, dim):
-	      '''
+	'''
         cblas_sgemv is used to multiply vector and matrix.
 
         CblasRowMajor                   -> Multiiply in a row major order
@@ -130,7 +129,7 @@ class WordVecSpace(object):
         return vec_out
 
     def _perform_sgemm(self, mat_a, mat_b, mat_out):
-	      '''
+	'''
         cblas_sgemm is for multiplying matrix and matrix
 
         CblasRowMajor                   -> Specifies row-major (C)
@@ -165,7 +164,6 @@ class WordVecSpace(object):
                          mat_out.ctypes.data_as(c_void_p),
                          len(mat_b))
         return mat_out
-
 
     @property
     def num_vectors(self):
@@ -220,12 +218,12 @@ class WordVecSpace(object):
 
     def does_word_exist(self, word):
         '''
-	      >>> wv = WordVecSpace(DATADIR_ENV_VAR)
-	      >>> wv.load()
-	      >>> print wv.does_word_exist("india")
-	      True
-	      >>> print wv.does_word_exist("inidia")
-	      False
+	>>> wv = WordVecSpace(DATADIR_ENV_VAR)
+	>>> wv.load()
+	>>> print wv.does_word_exist("india")
+	True
+	>>> print wv.does_word_exist("inidia")
+	False
         '''
         return word in self.word_indices
 
@@ -236,8 +234,8 @@ class WordVecSpace(object):
         then return that
 
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
-	      >>> wv.load()
-	      >>> print wv.get_word_index("india")
+	>>> wv.load()
+	>>> print wv.get_word_index("india")
         509
         >>> print wv.get_word_index("inidia")
         None
@@ -264,12 +262,12 @@ class WordVecSpace(object):
         '''
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
         >>> wv.load()
-	      >>> print wv.get_word_at_index(509)
-	      india
+	>>> print wv.get_word_at_index(509)
+	india
         '''
 
-	      try:
-	          return self.words[index]
+	try:
+	    return self.words[index]
 
         except IndexError:
             if raise_exc == True:
@@ -279,7 +277,7 @@ class WordVecSpace(object):
         '''
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
         >>> wv.load()
-	      >>> print wv.get_word_vector('india')
+	>>> print wv.get_word_vector('india')
         [-6.44819974899292 -2.163585662841797 5.727677345275879 -3.7746448516845703
          3.5829529762268066]
         >>> print wv.get_word_vector(509, normalized=True)
@@ -341,7 +339,7 @@ class WordVecSpace(object):
         '''
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
         >>> wv.load()
-	      >>> print wv.get_word_vectors(["hi", "india"])
+	>>> print wv.get_word_vectors(["hi", "india"])
         [[ 0.24728754  0.25350514 -0.32058391  0.80575693  0.35009396]
          [-0.62585545 -0.20999533  0.55592233 -0.36636305  0.34775764]]
         >>> print wv.get_word_vectors(["hi", "inidia"])
@@ -363,7 +361,6 @@ class WordVecSpace(object):
             else:
                 wmat[i].fill(0.0)
 
-
         return wmat
 
     def get_distance(self, word1, word2, raise_exc=False):
@@ -371,13 +368,12 @@ class WordVecSpace(object):
         Get cosine distance between two words
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
         >>> wv.load()
-	      >>> print wv.get_distance(250, "india")
-	      1.16397565603
+	>>> print wv.get_distance(250, "india")
+	1.16397565603
         '''
         return 1 - self._perform_dot(\
             self.get_word_vector(word1, normalized=True, raise_exc=raise_exc),\
             self.get_word_vector(word2, normalized=True, raise_exc=raise_exc).T)
-
 
     def get_distances(self, row_words, col_words=None, raise_exc=False):
         '''
@@ -387,7 +383,7 @@ class WordVecSpace(object):
         get_distances(words_x, words_y)
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
         >>> wv.load()
-	      >>> print wv.get_distances("for", ["to", "for", "india"])
+	>>> print wv.get_distances("for", ["to", "for", "india"])
         [[  1.49903178e-01]
          [ -1.19209290e-07]
          [  1.38545406e+00]]
@@ -395,15 +391,15 @@ class WordVecSpace(object):
         [[  1.49903178e-01]
          [ -1.19209290e-07]
          [  1.00000000e+00]]
-	      >>> print wv.get_distances(["india", "for"], ["to", "for", "usa"])
+	>>> print wv.get_distances(["india", "for"], ["to", "for", "usa"])
         [[  1.18296981e+00   1.38545406e+00   4.83795345e-01]
          [  1.49903178e-01  -1.19209290e-07   1.49754810e+00]]
-	      >>> print wv.get_distances(["india", "usa"])
+	>>> print wv.get_distances(["india", "usa"])
         [[ 1.49026275  0.42019838  0.26900166 ...,  1.20406425  1.35388517
            0.61542797]
          [ 1.80836535  0.95410818  1.16784871 ...,  0.59629607  1.04579568
            1.16079855]]
-	      >>> print wv.get_distances(["andhra"])
+	>>> print wv.get_distances(["andhra"])
         [[ 1.34324384  0.57814509  0.23055941 ...,  1.09365845  1.1369158
            0.42843747]]
         '''
@@ -423,12 +419,11 @@ class WordVecSpace(object):
         if only_single_row_word:
             mat = col_vectors
             v = row_vectors
-	          vec_out = self._make_array((len(mat), len(v)), dtype=np.float32)
+	    vec_out = self._make_array((len(mat), len(v)), dtype=np.float32)
 
             nvecs, dim = mat.shape
 
             res = self._perform_sgemv(mat, v, vec_out, nvecs, dim)
-
 
         else:
             mat_a = row_vectors
@@ -439,7 +434,7 @@ class WordVecSpace(object):
             res = self._perform_sgemm(mat_a, mat_b, mat_out)
 
         return 1 - res
-      
+
     DEFAULT_K = 512
 
     def get_nearest_neighbors(self, word, k=DEFAULT_K):
@@ -453,7 +448,6 @@ class WordVecSpace(object):
                     28738, 20855],
                    dtype='int64')
         '''
-
         distances = self.get_distances(word)
         distances = distances.reshape((len(distances),))
 
