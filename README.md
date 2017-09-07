@@ -245,6 +245,8 @@ python -m doctest -v wordvecspace.py
 This python module useful to perform word vector space operations on GPU. But the vectors size must be below the GPU ram.
 
 To accelerate GPU import wordvecspace module
+```python!
 >>> from wordvecspace.cuda import WordVecSpace
+```
 
 
