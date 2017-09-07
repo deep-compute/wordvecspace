@@ -38,6 +38,8 @@ setup(
         'numpy',
         'pandas',
         'numba',
+        'pycuda',
+        'scikit-cuda',
     ],
     package_dir={'wordvecspace': 'wordvecspace'},
     packages=find_packages('.'),

@@ -1,23 +1,18 @@
 
 # word vector space
-A python module that helps in loading and performing operations on word vector spaces created using Google's Word2vec tool over GPU and  CPU
+A python module that helps in loading and performing operations on word vector spaces created using Google's Word2vec tool
 
 ## Installation
 > Prerequisites: Python2.7
 
 ```bash=!
-sudo pip install numpy pandas numba pycuda
-git clone "https://github.com/lebedov/scikit-cuda.git"
 sudo apt install libopenblas-base
 ```
 
 ## Usage
 
 ```python=!
-# GPU
->>> from wordvecspace.cuda import WordVecSpace
 
-# CPU
 >>> from wordvecspace import WordVecSpace
 
 # Load the data (Vector and Vocab information)
@@ -246,3 +241,10 @@ $ export WORDVECSPACE_DATADIR="/home/ram/small_test_data"
 python -m doctest -v wordvecspace.py
 
 ```
+## GPU acceleration
+This python module useful to perform word vector space operations on GPU. But the vectors size must be below the GPU ram.
+
+To accelerate GPU import wordvecspace module
+>>> from wordvecspace.cuda import WordVecSpace
+
+
