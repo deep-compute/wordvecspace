@@ -440,7 +440,6 @@ class WordVecSpace(object):
 
             res = self._perform_sgemv(mat, v, vec_out, nvecs, dim)
 
-
         else:
             mat_a = row_vectors
             mat_b = col_vectors

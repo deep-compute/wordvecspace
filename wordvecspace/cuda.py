@@ -23,9 +23,9 @@ class CudaWordVecSpace(WordVecSpace):
         dim             -> number of columns of matrix
         nvecs           -> number of rows of matrix
         alpha           -> scalar used for multiplication of mat
-        mat.gpudata   -> matrix mat
+        mat.gpudata     -> matrix mat
         dim             -> columns of matrix
-        v.gpudata   -> vector v
+        v.gpudata       -> vector v
         incX            -> Stride within X. For example, if incX is 7, every 7th element is used.
         beta            -> scalar used for multiplication of v
         v_out.gpudata   -> result
