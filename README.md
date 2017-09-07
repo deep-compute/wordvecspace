@@ -191,7 +191,7 @@ Int64Index([  509,   486, 14208, 20639,  8573,  3389,  5226, 20919, 10172,
 
 ## Running tests
 
-```bash=!
+```bash
 # Download the data files
 $ wget 'https://s3.amazonaws.com/deepcompute-public/data/wordvecspace/small_test_data.tgz'
 
