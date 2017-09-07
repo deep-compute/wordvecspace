@@ -52,17 +52,17 @@ wordvecspace.UnknownWord: "inidia"
 # Get the word vector for a word india
 
 >>> print wv.get_word_vector("india", raise_exc=False)
-[-6.44819974899292 -2.163585662841797 5.727677345275879 -3.7746448516845703 3.5829529762268066]
+[-6.44819975 -2.16358566  5.72767735 -3.77464485  3.58295298]
 
 # Get the unit word vector for a word india
 >>> print wv.get_word_vector("india", normalized=True, raise_exc=False)
+[-0.62585545 -0.20999533  0.55592233 -0.36636305  0.34775764]
 
 >>> print wv.get_word_vector("india")
-[-6.44819974899292 -2.163585662841797 5.727677345275879 -3.7746448516845703 3.5829529762268066]
+[-6.44819975 -2.16358566  5.72767735 -3.77464485  3.58295298]
 
 # Get the unit word vector for a word india
 >>> print wv.get_word_vector("india", normalized=True)
-
 [-0.62585545 -0.20999533  0.55592233 -0.36636305  0.34775764]
 
 # Get the unit vector for a word inidia.
@@ -77,7 +77,7 @@ wordvecspace.UnknownWord: "inidia"
 
 # Get the unit vector for a word inidia. If the word is not present it simply returns zeros if raise_exc is False.
 >>> print wv.get_word_vector('inidia', normalized=True, raise_exc=False)
-[0.0 0.0 0.0 0.0 0.0]
+[ 0.  0.  0.  0.  0.]
 
 # Get Word at Index 509
 >>> print wv.get_word_at_index(509, raise_exc=False)
@@ -97,7 +97,7 @@ None
 
 # Get Vector magnitude of the word india
 >>> print wv.get_vector_magnitudes("india", raise_exc=False)
-8.79479218
+[ 10.30301762]
 # In above, you can alternatively pass the index of "india" instead of the word itself
 
 >>> print wv.get_vector_magnitudes(["india", "usa"], raise_exc=False)
@@ -109,7 +109,7 @@ None
 # Get vectors for list of words
 
 >>> print wv.get_word_vector('inidia', normalized=True)
-[0.0 0.0 0.0 0.0 0.0]
+[ 0.  0.  0.  0.  0.]
 
 # Get Word at Index 509
 >>> print wv.get_word_at_index(509)
@@ -139,7 +139,7 @@ wordvecspace.UnknownWord: "inidia"
 
 # Get Vector magnitude of the word india
 >>> print wv.get_vector_magnitudes("india")
-8.79479218
+[ 10.30301762]
 # In above, you can alternatively pass the index of "india" instead of the word itself
 
 >>> print wv.get_vector_magnitudes(["india", "usa"])
