@@ -1,0 +1,28 @@
+language: python
+python:
+  - '2.7'
+install: 
+  - "pip install ."
+script:
+  - echo "no tests yet"
+deploy:
+  # pypitest
+  - provider: pypi
+    distributions: "sdist bdist_wheel"
+    server: https://testpypi.python.org/pypi
+    user: "deepcompute"
+    password:
+      secure: "vZ1JZchFnvnvgbqGJ4YQto32DjV2z32MlkVnFlGaXMC6bwfnpVw8F17PG0WVjd2vP0Rt5yIEpyu6CwE5NnhsPOZN00lQVHf0xAZboqAodYgnaStqYlr+Y0mtvg+v/i9+1QgnXdB4sJoZP92BAULCDlC0CHmzn1yCrVh4pan5nXheWTBVWv2RN4QllQm5Ksvf2bWj6aW6xpmWHmtyK3T1J8DxjXKRCL8YWfkrYsganfDtf2Y1lAVSZjMMSN4MDC7o56jf6unEABfjmRNvqdGUeY+kPaKCItONRf67INaYE2YI13W9kD+8nVAbhhRQoZyZTjQenwXqnENUIaNz1ED3idHVDLCOfPCGd98B2TrAmi/lbqB65uqxna1zmtiF4GJmuzEndW0jzKtHovMnoqcql9e8oUNvGegxpjocvxzBl8ty6sHblULmpw/TRzlqnVplJrul6BhKK2P+OLCGTvSWAR+uZlNaYV9HshIEZfTjDdLn1PcECVrmJAyhx0iPF09U662QsYE+eWPXkwMeehQp5CZE9gJgCanCrFVhX09rBj2o3YhxV7xJJchwIT4H/1KGOTu7IWd2GcJzHIsD4woSjaTQvdUPKzRPBUxglWE7sMXq/KLrWoDoUM1Fys7ltu+0Sp0QXMELOolN+eVinnNuknKAQY50TRpBAnmlbAUu8YA="
+    on:
+      tags: false
+      branch: master
+  # pypi
+  - provider: pypi
+    distributions: "sdist bdist_wheel"
+    server: https://upload.pypi.org/legacy/
+    user: "deepcompute"
+    password:
+      secure: "vZ1JZchFnvnvgbqGJ4YQto32DjV2z32MlkVnFlGaXMC6bwfnpVw8F17PG0WVjd2vP0Rt5yIEpyu6CwE5NnhsPOZN00lQVHf0xAZboqAodYgnaStqYlr+Y0mtvg+v/i9+1QgnXdB4sJoZP92BAULCDlC0CHmzn1yCrVh4pan5nXheWTBVWv2RN4QllQm5Ksvf2bWj6aW6xpmWHmtyK3T1J8DxjXKRCL8YWfkrYsganfDtf2Y1lAVSZjMMSN4MDC7o56jf6unEABfjmRNvqdGUeY+kPaKCItONRf67INaYE2YI13W9kD+8nVAbhhRQoZyZTjQenwXqnENUIaNz1ED3idHVDLCOfPCGd98B2TrAmi/lbqB65uqxna1zmtiF4GJmuzEndW0jzKtHovMnoqcql9e8oUNvGegxpjocvxzBl8ty6sHblULmpw/TRzlqnVplJrul6BhKK2P+OLCGTvSWAR+uZlNaYV9HshIEZfTjDdLn1PcECVrmJAyhx0iPF09U662QsYE+eWPXkwMeehQp5CZE9gJgCanCrFVhX09rBj2o3YhxV7xJJchwIT4H/1KGOTu7IWd2GcJzHIsD4woSjaTQvdUPKzRPBUxglWE7sMXq/KLrWoDoUM1Fys7ltu+0Sp0QXMELOolN+eVinnNuknKAQY50TRpBAnmlbAUu8YA="
+    on:
+      tags: true
+      branch: master

@@ -14,9 +14,9 @@ from numba import guvectorize
 # $export WORDVECSPACE_DATADIR=/path/to/data/
 DATADIR_ENV_VAR = os.environ.get('WORDVECSPACE_DATADIR', ' ')
 
-# $export WORDVECSPACE_BLAS_FPATH=/usr/lib/libopenblas.so.0
+# $export WORDVECSPACE_BLAS_FPATH=/usr/lib/libopenblas.so
 BLAS_LIBRARY_FPATH = os.environ.get('WORDVECSPACE_BLAS_FPATH',
-        '/usr/lib/libopenblas.so.0')
+        '/usr/lib/libopenblas.so')
 cblas = cdll.LoadLibrary(BLAS_LIBRARY_FPATH)
 
 # Some OpenBlas constants
@@ -58,12 +58,12 @@ def normalize_vectors(vec, m):
 
     _m = 0.0
     for i in xrange(len(vec)):
-	      _m += vec[i]**2
+	_m += vec[i]**2
 
     _m = np.sqrt(_m)
 
     for i in xrange(len(vec)):
-	      vec[i] /= _m
+	vec[i] /= _m
 
     m[0] = _m
 
@@ -89,83 +89,6 @@ class WordVecSpace(object):
 
         # One dimensional array holding magnitudes of vectors
         self.magnitudes = None
-
-
-    def _make_array(self, shape, dtype):
-        return np.ndarray(shape, dtype)
-
-    def _perform_dot(self, v1, v2):
-        return np.dot(v1, v2)
-
-    def _perform_sgemv(self, mat, v, vec_out, nvecs, dim):
-	      '''
-        cblas_sgemv is used to multiply vector and matrix.
-
-        CblasRowMajor                   -> Multiiply in a row major order
-        CblasNoTrans                    -> Whether to transpose matix or not
-        nvecs, dim                      -> Rows, columns of Matrix
-        ctypes.c_float(1.0)             -> Scaling factor for the product of matrix and vector
-        mat.ctypes.data_as(c_void_p)    -> matrix
-        dim                             -> Columns of matirx
-        v.ctypes.data_as(c_void_p)      -> vector
-        incX                            -> Stride within X. For example, if incX is 7, every 7th element is used.
-        ctypes.c_float(0.0)             -> Scaling factor for vector.
-        vec_out.ctypes.data_as(c_void_p)-> result vector
-        incY                            -> Stride within Y. For example, if incY is 7, every 7th element is used
-
-        Read more                       -> https://developer.apple.com/documentation/accelerate/1513065-cblas_sgemv?language=objc
-        '''
-        cblas.cblas_sgemv(CblasRowMajor,
-                         CblasNoTrans,
-                         nvecs,
-                         dim,
-                         ctypes.c_float(1.0),
-                         mat.ctypes.data_as(c_void_p),
-                         dim,
-                         v.ctypes.data_as(c_void_p),
-                         incX,
-                         ctypes.c_float(0.0),
-                         vec_out.ctypes.data_as(c_void_p),
-                         incY)
-        return vec_out
-
-    def _perform_sgemm(self, mat_a, mat_b, mat_out):
-	      '''
-        cblas_sgemm is for multiplying matrix and matrix
-
-        CblasRowMajor                   -> Specifies row-major (C)
-        CblasNoTrans                    -> Specifies whether to transpose matrix mat_a
-        CblasTrans                      -> Specifies whether to transpose matrix mat_b
-        len(mat_a)                      -> Rows of result(Rows of mat_out)
-        len(mat_b)                      -> Columns of result(Columns of mat_out)
-        self.num_dimensions             -> Common dimension in mat_a and mat_b
-        ctypes.c_float(1.0)             -> Scaling factor for the product of matrices mat_a and mat_b
-        mat_a.ctypes.data_as(c_void_p)  -> matrix mat_a
-        self.num_dimensions             -> Columns of mat_a
-        mat_b.ctypes.data_as(c_void_p)  -> matrix mat_b
-        self.num_dimensions             -> Columns of mat_b
-        ctypes.c_float(0.0)             -> Scaling factor for matrix mat_out
-        mat_out.ctypes.data_as(c_void_p)-> matirx mat_out
-        len(mat_b)                      -> Columns of mat_out
-
-        Read more                       -> https://developer.apple.com/documentation/accelerate/1513264-cblas_sgemm?language=objc
-        '''
-        cblas.cblas_sgemm(CblasRowMajor,
-                         CblasNoTrans,
-                         CblasTrans,
-                         len(mat_a),
-                         len(mat_b),
-                         self.num_dimensions,
-                         ctypes.c_float(1.0),
-                         mat_a.ctypes.data_as(c_void_p),
-                         self.num_dimensions,
-                         mat_b.ctypes.data_as(c_void_p),
-                         self.num_dimensions,
-                         ctypes.c_float(0.0),
-                         mat_out.ctypes.data_as(c_void_p),
-                         len(mat_b))
-        return mat_out
-
 
     @property
     def num_vectors(self):
@@ -220,12 +143,12 @@ class WordVecSpace(object):
 
     def does_word_exist(self, word):
         '''
-	      >>> wv = WordVecSpace(DATADIR_ENV_VAR)
-	      >>> wv.load()
-	      >>> print wv.does_word_exist("india")
-	      True
-	      >>> print wv.does_word_exist("inidia")
-	      False
+	>>> wv = WordVecSpace(DATADIR_ENV_VAR)
+	>>> wv.load()
+	>>> print wv.does_word_exist("india")
+	True
+	>>> print wv.does_word_exist("inidia")
+	False
         '''
         return word in self.word_indices
 
@@ -236,8 +159,8 @@ class WordVecSpace(object):
         then return that
 
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
-	      >>> wv.load()
-	      >>> print wv.get_word_index("india")
+	>>> wv.load()
+	>>> print wv.get_word_index("india")
         509
         >>> print wv.get_word_index("inidia")
         None
@@ -264,12 +187,12 @@ class WordVecSpace(object):
         '''
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
         >>> wv.load()
-	      >>> print wv.get_word_at_index(509)
-	      india
+	>>> print wv.get_word_at_index(509)
+	india
         '''
 
-	      try:
-	          return self.words[index]
+	try:
+	    return self.words[index]
 
         except IndexError:
             if raise_exc == True:
@@ -279,7 +202,7 @@ class WordVecSpace(object):
         '''
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
         >>> wv.load()
-	      >>> print wv.get_word_vector('india')
+	>>> print wv.get_word_vector('india')
         [-6.44819974899292 -2.163585662841797 5.727677345275879 -3.7746448516845703
          3.5829529762268066]
         >>> print wv.get_word_vector(509, normalized=True)
@@ -341,7 +264,7 @@ class WordVecSpace(object):
         '''
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
         >>> wv.load()
-	      >>> print wv.get_word_vectors(["hi", "india"])
+	>>> print wv.get_word_vectors(["hi", "india"])
         [[ 0.24728754  0.25350514 -0.32058391  0.80575693  0.35009396]
          [-0.62585545 -0.20999533  0.55592233 -0.36636305  0.34775764]]
         >>> print wv.get_word_vectors(["hi", "inidia"])
@@ -354,15 +277,11 @@ class WordVecSpace(object):
         '''
 
         n = len(words_or_indices)
-        wmat = self._make_array(dtype=np.float32, shape=(n, self.num_dimensions))
+        wmat = np.ndarray(dtype=np.float32, shape=(n, self.num_dimensions))
 
         for i, w in enumerate(words_or_indices):
             windex = self.get_word_index(w, raise_exc)
-            if windex:
-                wmat[i] = self.vectors[windex]
-            else:
-                wmat[i].fill(0.0)
-
+            np.copyto(wmat[i], self.vectors[windex]) if windex is not None else wmat[i].fill(0.0)
 
         return wmat
 
@@ -371,13 +290,11 @@ class WordVecSpace(object):
         Get cosine distance between two words
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
         >>> wv.load()
-	      >>> print wv.get_distance(250, "india")
-	      1.16397565603
+	>>> print wv.get_distance(250, "india")
+	1.16397565603
         '''
-        return 1 - self._perform_dot(\
-            self.get_word_vector(word1, normalized=True, raise_exc=raise_exc),\
-            self.get_word_vector(word2, normalized=True, raise_exc=raise_exc).T)
-
+        return 1 - np.dot(self.get_word_vector(word1, normalized=True, raise_exc=raise_exc),
+                self.get_word_vector(word2, normalized=True, raise_exc=raise_exc).T)
 
     def get_distances(self, row_words, col_words=None, raise_exc=False):
         '''
@@ -387,7 +304,7 @@ class WordVecSpace(object):
         get_distances(words_x, words_y)
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
         >>> wv.load()
-	      >>> print wv.get_distances("for", ["to", "for", "india"])
+	>>> print wv.get_distances("for", ["to", "for", "india"])
         [[  1.49903178e-01]
          [ -1.19209290e-07]
          [  1.38545406e+00]]
@@ -395,15 +312,15 @@ class WordVecSpace(object):
         [[  1.49903178e-01]
          [ -1.19209290e-07]
          [  1.00000000e+00]]
-	      >>> print wv.get_distances(["india", "for"], ["to", "for", "usa"])
+	>>> print wv.get_distances(["india", "for"], ["to", "for", "usa"])
         [[  1.18296981e+00   1.38545406e+00   4.83795345e-01]
          [  1.49903178e-01  -1.19209290e-07   1.49754810e+00]]
-	      >>> print wv.get_distances(["india", "usa"])
+	>>> print wv.get_distances(["india", "usa"])
         [[ 1.49026275  0.42019838  0.26900166 ...,  1.20406425  1.35388517
            0.61542797]
          [ 1.80836535  0.95410818  1.16784871 ...,  0.59629607  1.04579568
            1.16079855]]
-	      >>> print wv.get_distances(["andhra"])
+	>>> print wv.get_distances(["andhra"])
         [[ 1.34324384  0.57814509  0.23055941 ...,  1.09365845  1.1369158
            0.42843747]]
         '''
@@ -421,25 +338,82 @@ class WordVecSpace(object):
             col_vectors = self.get_word_vectors(col_words, raise_exc)
 
         if only_single_row_word:
-            mat = col_vectors
+            mat_a = col_vectors
             v = row_vectors
-	          vec_out = self._make_array((len(mat), len(v)), dtype=np.float32)
+	    mat_c = np.ndarray((len(mat_a), len(v)), dtype=np.float32)
 
-            nvecs, dim = mat.shape
+            nvecs, dim = mat_a.shape
 
-            res = self._perform_sgemv(mat, v, vec_out, nvecs, dim)
-
+            '''
+            cblas_sgemv is used to multiply vector and matrix.
+            CblasRowMajor                   -> Multiiply in a row major order
+            CblasNoTrans                    -> Whether to transpose matix or not
+            nvecs, dim                      -> Rows, columns of Matrix
+            ctypes.c_float(1.0)             -> Scaling factor for the product of matrix and vector
+            mat_a.ctypes.data_as(c_void_p)  -> matrix
+            dim                             -> Column of matirx
+            v.ctypes.data_as(c_void_p)      -> vector
+            incX                            -> Stride within X. For example, if incX is 7, every 7th element is used.
+            ctypes.c_float(0.0)             -> Scaling factor for vector.
+            mat_c.ctypes.data_as(c_void_p)  -> result
+            incY                            -> Stride within Y. For example, if incY is 7, every 7th element is used
+            Read more                       -> https://developer.apple.com/documentation/accelerate/1513065-cblas_sgemv?language=objc
+            '''
+	    cblas.cblas_sgemv(CblasRowMajor,
+                             CblasNoTrans,
+                             nvecs,
+                             dim,
+                             ctypes.c_float(1.0),
+                             mat_a.ctypes.data_as(c_void_p),
+                             dim,
+                             v.ctypes.data_as(c_void_p),
+                             incX,
+                             ctypes.c_float(0.0),
+                             mat_c.ctypes.data_as(c_void_p),
+                             incY)
 
         else:
             mat_a = row_vectors
             mat_b = col_vectors
 
-            mat_out = self._make_array((len(mat_a), len(mat_b)), dtype=np.float32)
+            mat_c = np.ndarray((len(mat_a), len(mat_b)), dtype=np.float32)
 
-            res = self._perform_sgemm(mat_a, mat_b, mat_out)
+            '''
+            cblas_sgemm is for multiplying matrix and matrix
 
-        return 1 - res
-      
+            CblasRowMajor                   -> Specifies row-major (C)
+            CblasNoTrans                    -> Specifies whether to transpose matrix mat_a
+            CblasTrans                      -> Specifies whether to transpose matrix mat_b
+            len(mat_a)                      -> Rows of result(Rows of mat_c)
+            len(mat_b)                      -> Columns of result(Columns of mat_c)
+            self.num_dimensions             -> Common dimension in mat_a and mat_b
+            ctypes.c_float(1.0)             -> Scaling factor for the product of matrices mat_a and mat_b
+            mat_a.ctypes.data_as(c_void_p)  -> matrix mat_a
+            self.num_dimensions             -> Columns of mat_a
+            mat_b.ctypes.data_as(c_void_p)  -> matrix mat_b
+            self.num_dimensions             -> Columns of mat_b
+            ctypes.c_float(0.0)             -> Scaling factor for matrix mat_c
+            mat_c.ctypes.data_as(c_void_p)  -> matirx mat_c
+            len(mat_b)                      -> Columns of mat_c
+            Read more                       -> https://developer.apple.com/documentation/accelerate/1513264-cblas_sgemm?language=objc
+            '''
+	    cblas.cblas_sgemm(CblasRowMajor,
+                             CblasNoTrans,
+			     CblasTrans,
+			     len(mat_a),
+			     len(mat_b),
+			     self.num_dimensions,
+			     ctypes.c_float(1.0),
+			     mat_a.ctypes.data_as(c_void_p),
+			     self.num_dimensions,
+			     mat_b.ctypes.data_as(c_void_p),
+			     self.num_dimensions,
+			     ctypes.c_float(0.0),
+			     mat_c.ctypes.data_as(c_void_p),
+			     len(mat_b))
+
+        return 1 - mat_c
+
     DEFAULT_K = 512
 
     def get_nearest_neighbors(self, word, k=DEFAULT_K):
