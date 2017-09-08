@@ -22,11 +22,13 @@ def get_long_description():
 
 long_description = get_long_description()
 
-version = '0.2'
+version = '0.3'
 setup(
     name="wordvecspace",
     version=version,
-    description="A python module that helps in loading and performing operations on word vector spaces created using Google's Word2vec tool.",
+    description="A high performance pure python module that helps in"
+                " loading and performing operations on word vector spaces"
+                " created using Google's Word2vec tool.",
     long_description=long_description,
     keywords='wordvecspace',
     author='Deep Compute, LLC',
@@ -38,9 +40,10 @@ setup(
         'numpy',
         'pandas',
         'numba',
-        'pycuda',
-        'scikit-cuda',
     ],
+    extras_require={
+        'cuda': ['pycuda', 'scikit-cuda'],
+    },
     package_dir={'wordvecspace': 'wordvecspace'},
     packages=find_packages('.'),
     include_package_data=True,
@@ -49,5 +52,6 @@ setup(
         "Environment :: Console",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
-    ]
+    ],
+    test_suite='test.suite'
 )
