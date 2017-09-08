@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import doctest
-import numtest
 
 from wordvecspace import wordvecspace
 
