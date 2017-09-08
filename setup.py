@@ -26,7 +26,9 @@ version = '0.3'
 setup(
     name="wordvecspace",
     version=version,
-    description="A high performance pure python module that helps in loading and performing operations on word vector spaces created using Google's Word2vec tool.",
+    description="A high performance pure python module that helps in"
+                " loading and performing operations on word vector spaces"
+                " created using Google's Word2vec tool.",
     long_description=long_description,
     keywords='wordvecspace',
     author='Deep Compute, LLC',
@@ -38,10 +40,10 @@ setup(
         'numpy',
         'pandas',
         'numba',
-        'pycuda',
-        'scikit-cuda',
-        'numtest',
     ],
+    extras_require={
+        'cuda': ['pycuda', 'scikit-cuda'],
+    },
     package_dir={'wordvecspace': 'wordvecspace'},
     packages=find_packages('.'),
     include_package_data=True,
