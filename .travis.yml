@@ -1,28 +1,48 @@
 language: python
 python:
-  - '2.7'
+- '2.7'
+before_install:
+- wget 'https://s3.amazonaws.com/deepcompute-public/data/wordvecspace/small_test_data.tgz'
+  && tar xvzf small_test_data.tgz
+- export WORDVECSPACE_DATADIR='./small_test_data'
 install: 
-  - "pip install ."
+- pip install .
+- sudo apt install libopenblas-base
 script:
-  - echo "no tests yet"
+- python setup.py test
 deploy:
+- provider: releases
+  api-key:
+    secure: LmVvlW+FdYNIDlinjJ4sieONrcx1jaw18J7/mpHBD9ppIWZ+TB6H/iNqkqkh4WvULZttJrTHRYE6rQHXww7KK2UMrjVNE/TVUPaLFDeRRFvLDinAbqJkn+QJia0TuRa/26Bg9cDcvNYTghy7s37xpK2bJTEMF/eCM9b9RHYXilESYy8Z4l8IkFn5vnaDDfT5iV8xjuuOE4lsf4KC3L0xXIkYnKC/LbDVDj3B9h52TpsteL6cZtn/ExAThor5SrVymW7oMR1qrPQv8btNAdxymqJvEbjaP5RUuX7ehihev0Yge47A2X9gvxDRv+a6wM0HOvT4aGsMwCWo++fb0taWH7HUXFxSvkzKhsl74kDMmnE0WarcI/8L/3Q/zRhW1a2vAtj3O0FDHtzS/OK/k3TDk6Fh/LOvk2mTuGD3L34YxJrXxDxnt4tK2ubde8cGeA7pI5jRLNTNQXUip6Dxhr/5ZnMmG2nHI6ujjmDnucE+CHBtUmS1wjBn6ootE4pdoyti0aaA9OrVoGrf39pK7FAG38KJghqn8I3YCLoeapWjI4/DI0WIfq2Vl+v6yQar3Dn9lBLpWFLrjUmZnAx2F1e0P2y0VUg9hl0bINzIIrm2mHw4Zsl2GlMVSR033cwvcbdyeNxKMAfSV3EZBDpNuI6nlkkUZG1O72N/WV+kFRtSdQA=
+  file:
+    - README.md
+    - setup.py
+    - wordvecspace/__init__.py
+    - wordvecspace/wordvecspace.py
+    - test.py
+    - .travis.py
+    - wordvecspace/cuda.py
+  name: wordvecspace-0.3
+  tag_name: 0.3
+  on:
+    repo: deep-compute/wordvecspace
   # pypitest
-  - provider: pypi
-    distributions: "sdist bdist_wheel"
-    server: https://testpypi.python.org/pypi
-    user: "deepcompute"
-    password:
-      secure: "vZ1JZchFnvnvgbqGJ4YQto32DjV2z32MlkVnFlGaXMC6bwfnpVw8F17PG0WVjd2vP0Rt5yIEpyu6CwE5NnhsPOZN00lQVHf0xAZboqAodYgnaStqYlr+Y0mtvg+v/i9+1QgnXdB4sJoZP92BAULCDlC0CHmzn1yCrVh4pan5nXheWTBVWv2RN4QllQm5Ksvf2bWj6aW6xpmWHmtyK3T1J8DxjXKRCL8YWfkrYsganfDtf2Y1lAVSZjMMSN4MDC7o56jf6unEABfjmRNvqdGUeY+kPaKCItONRf67INaYE2YI13W9kD+8nVAbhhRQoZyZTjQenwXqnENUIaNz1ED3idHVDLCOfPCGd98B2TrAmi/lbqB65uqxna1zmtiF4GJmuzEndW0jzKtHovMnoqcql9e8oUNvGegxpjocvxzBl8ty6sHblULmpw/TRzlqnVplJrul6BhKK2P+OLCGTvSWAR+uZlNaYV9HshIEZfTjDdLn1PcECVrmJAyhx0iPF09U662QsYE+eWPXkwMeehQp5CZE9gJgCanCrFVhX09rBj2o3YhxV7xJJchwIT4H/1KGOTu7IWd2GcJzHIsD4woSjaTQvdUPKzRPBUxglWE7sMXq/KLrWoDoUM1Fys7ltu+0Sp0QXMELOolN+eVinnNuknKAQY50TRpBAnmlbAUu8YA="
-    on:
-      tags: false
-      branch: master
+- provider: pypi
+  distributions: "sdist bdist_wheel"
+  server: https://testpypi.python.org/pypi
+  user: deepcompute
+  password:
+    secure: vZ1JZchFnvnvgbqGJ4YQto32DjV2z32MlkVnFlGaXMC6bwfnpVw8F17PG0WVjd2vP0Rt5yIEpyu6CwE5NnhsPOZN00lQVHf0xAZboqAodYgnaStqYlr+Y0mtvg+v/i9+1QgnXdB4sJoZP92BAULCDlC0CHmzn1yCrVh4pan5nXheWTBVWv2RN4QllQm5Ksvf2bWj6aW6xpmWHmtyK3T1J8DxjXKRCL8YWfkrYsganfDtf2Y1lAVSZjMMSN4MDC7o56jf6unEABfjmRNvqdGUeY+kPaKCItONRf67INaYE2YI13W9kD+8nVAbhhRQoZyZTjQenwXqnENUIaNz1ED3idHVDLCOfPCGd98B2TrAmi/lbqB65uqxna1zmtiF4GJmuzEndW0jzKtHovMnoqcql9e8oUNvGegxpjocvxzBl8ty6sHblULmpw/TRzlqnVplJrul6BhKK2P+OLCGTvSWAR+uZlNaYV9HshIEZfTjDdLn1PcECVrmJAyhx0iPF09U662QsYE+eWPXkwMeehQp5CZE9gJgCanCrFVhX09rBj2o3YhxV7xJJchwIT4H/1KGOTu7IWd2GcJzHIsD4woSjaTQvdUPKzRPBUxglWE7sMXq/KLrWoDoUM1Fys7ltu+0Sp0QXMELOolN+eVinnNuknKAQY50TRpBAnmlbAUu8YA=
+  on:
+    tags: false
+    branch: master
   # pypi
-  - provider: pypi
-    distributions: "sdist bdist_wheel"
-    server: https://upload.pypi.org/legacy/
-    user: "deepcompute"
-    password:
-      secure: "vZ1JZchFnvnvgbqGJ4YQto32DjV2z32MlkVnFlGaXMC6bwfnpVw8F17PG0WVjd2vP0Rt5yIEpyu6CwE5NnhsPOZN00lQVHf0xAZboqAodYgnaStqYlr+Y0mtvg+v/i9+1QgnXdB4sJoZP92BAULCDlC0CHmzn1yCrVh4pan5nXheWTBVWv2RN4QllQm5Ksvf2bWj6aW6xpmWHmtyK3T1J8DxjXKRCL8YWfkrYsganfDtf2Y1lAVSZjMMSN4MDC7o56jf6unEABfjmRNvqdGUeY+kPaKCItONRf67INaYE2YI13W9kD+8nVAbhhRQoZyZTjQenwXqnENUIaNz1ED3idHVDLCOfPCGd98B2TrAmi/lbqB65uqxna1zmtiF4GJmuzEndW0jzKtHovMnoqcql9e8oUNvGegxpjocvxzBl8ty6sHblULmpw/TRzlqnVplJrul6BhKK2P+OLCGTvSWAR+uZlNaYV9HshIEZfTjDdLn1PcECVrmJAyhx0iPF09U662QsYE+eWPXkwMeehQp5CZE9gJgCanCrFVhX09rBj2o3YhxV7xJJchwIT4H/1KGOTu7IWd2GcJzHIsD4woSjaTQvdUPKzRPBUxglWE7sMXq/KLrWoDoUM1Fys7ltu+0Sp0QXMELOolN+eVinnNuknKAQY50TRpBAnmlbAUu8YA="
-    on:
-      tags: true
-      branch: master
+- provider: pypi
+  distributions: "sdist bdist_wheel"
+  server: https://upload.pypi.org/legacy/
+  user: deepcompute
+  password:
+    secure: vZ1JZchFnvnvgbqGJ4YQto32DjV2z32MlkVnFlGaXMC6bwfnpVw8F17PG0WVjd2vP0Rt5yIEpyu6CwE5NnhsPOZN00lQVHf0xAZboqAodYgnaStqYlr+Y0mtvg+v/i9+1QgnXdB4sJoZP92BAULCDlC0CHmzn1yCrVh4pan5nXheWTBVWv2RN4QllQm5Ksvf2bWj6aW6xpmWHmtyK3T1J8DxjXKRCL8YWfkrYsganfDtf2Y1lAVSZjMMSN4MDC7o56jf6unEABfjmRNvqdGUeY+kPaKCItONRf67INaYE2YI13W9kD+8nVAbhhRQoZyZTjQenwXqnENUIaNz1ED3idHVDLCOfPCGd98B2TrAmi/lbqB65uqxna1zmtiF4GJmuzEndW0jzKtHovMnoqcql9e8oUNvGegxpjocvxzBl8ty6sHblULmpw/TRzlqnVplJrul6BhKK2P+OLCGTvSWAR+uZlNaYV9HshIEZfTjDdLn1PcECVrmJAyhx0iPF09U662QsYE+eWPXkwMeehQp5CZE9gJgCanCrFVhX09rBj2o3YhxV7xJJchwIT4H/1KGOTu7IWd2GcJzHIsD4woSjaTQvdUPKzRPBUxglWE7sMXq/KLrWoDoUM1Fys7ltu+0Sp0QXMELOolN+eVinnNuknKAQY50TRpBAnmlbAUu8YA=
+  on:
+    tags: true
+    branch: master

@@ -9,6 +9,9 @@ import numpy as np
 import pandas as pd
 from numba import guvectorize
 
+np.set_printoptions(precision=4)
+check_equal = np.testing.assert_array_almost_equal
+
 # Add data dir path to environment variables
 
 # $export WORDVECSPACE_DATADIR=/path/to/data/
@@ -280,9 +283,9 @@ class WordVecSpace(object):
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
         >>> wv.load()
 	>>> print wv.get_word_vector('india')
-        [-6.44819975 -2.16358566  5.72767735 -3.77464485  3.58295298]
+        [-6.4482 -2.1636  5.7277 -3.7746  3.583 ]
         >>> print wv.get_word_vector(509, normalized=True)
-        [-0.62585545 -0.20999533  0.55592233 -0.36636305  0.34775764]
+        [-0.6259 -0.21    0.5559 -0.3664  0.3478]
         >>> print wv.get_word_vector('inidia', normalized=True)
         [ 0.  0.  0.  0.  0.]
         '''
@@ -313,9 +316,9 @@ class WordVecSpace(object):
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
         >>> wv.load()
         >>> print wv.get_vector_magnitudes(["hi", "india"])
-        [  8.79479218  10.30301762]
+        [  8.7948  10.303 ]
         >>> print wv.get_vector_magnitudes(["inidia", "india"])
-        [  0.          10.30301762]
+        [  0.     10.303]
         >>> print wv.get_vector_magnitudes(["inidia", "india"], raise_exc=True) # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         ...
@@ -353,11 +356,11 @@ class WordVecSpace(object):
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
         >>> wv.load()
 	>>> print wv.get_word_vectors(["hi", "india"])
-        [[ 0.24728754  0.25350514 -0.32058391  0.80575693  0.35009396]
-         [-0.62585545 -0.20999533  0.55592233 -0.36636305  0.34775764]]
+        [[ 0.2473  0.2535 -0.3206  0.8058  0.3501]
+         [-0.6259 -0.21    0.5559 -0.3664  0.3478]]
         >>> print wv.get_word_vectors(["hi", "inidia"])
-        [[ 0.24728754  0.25350514 -0.32058391  0.80575693  0.35009396]
-         [ 0.          0.          0.          0.          0.        ]]
+        [[ 0.2473  0.2535 -0.3206  0.8058  0.3501]
+         [ 0.      0.      0.      0.      0.    ]]
         >>> print wv.get_word_vectors(["hi", "inidia"], raise_exc=True) # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         ...
@@ -398,25 +401,18 @@ class WordVecSpace(object):
         get_distances(words_x, words_y)
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
         >>> wv.load()
-	>>> print wv.get_distances("for", ["to", "for", "india"])
-        [[  1.49903178e-01]
-         [ -1.19209290e-07]
-         [  1.38545406e+00]]
-        >>> print wv.get_distances("for", ["to", "for", "inidia"])
-        [[  1.49903178e-01]
-         [ -1.19209290e-07]
-         [  1.00000000e+00]]
+	>>> res = wv.get_distances("for", ["to", "for", "india"])
+        >>> check_equal(res, np.array([[  1.4990e-01], [ -1.1921e-07], [  1.3855e+00]], dtype=np.float32), decimal=4)
+        >>> res = wv.get_distances("for", ["to", "for", "inidia"])
+        >>> check_equal(res, np.array([[  1.4990e-01], [ -1.1921e-07], [  1.0000e+00]], dtype=np.float32), decimal=4)
 	>>> print wv.get_distances(["india", "for"], ["to", "for", "usa"])
-        [[  1.18296981e+00   1.38545406e+00   4.83795345e-01]
-         [  1.49903178e-01  -1.19209290e-07   1.49754810e+00]]
+        [[  1.1830e+00   1.3855e+00   4.8380e-01]
+         [  1.4990e-01  -1.1921e-07   1.4975e+00]]
 	>>> print wv.get_distances(["india", "usa"])
-        [[ 1.49026275  0.42019838  0.26900166 ...,  1.20406425  1.35388517
-           0.61542797]
-         [ 1.80836535  0.95410818  1.16784871 ...,  0.59629607  1.04579568
-           1.16079855]]
+        [[ 1.4903  0.4202  0.269  ...,  1.2041  1.3539  0.6154]
+         [ 1.8084  0.9541  1.1678 ...,  0.5963  1.0458  1.1608]]
 	>>> print wv.get_distances(["andhra"])
-        [[ 1.34324384  0.57814509  0.23055941 ...,  1.09365845  1.1369158
-           0.42843747]]
+        [[ 1.3432  0.5781  0.2306 ...,  1.0937  1.1369  0.4284]]
         '''
 
         only_single_row_word = False
