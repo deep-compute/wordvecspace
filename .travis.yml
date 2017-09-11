@@ -21,10 +21,11 @@ deploy:
     - wordvecspace/__init__.py
     - wordvecspace/wordvecspace.py
     - test.py
-    - .travis.py
+    - wordvecspace/command.py
+    - wordvecspace/convert.py
     - wordvecspace/cuda.py
-  name: wordvecspace-0.3
-  tag_name: 0.3
+  name: wordvecspace-0.4
+  tag_name: wordvecspace-0.4
   on:
     repo: deep-compute/wordvecspace
   # pypitest
