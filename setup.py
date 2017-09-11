@@ -22,13 +22,15 @@ def get_long_description():
 
 long_description = get_long_description()
 
-version = '0.3'
+version = '0.4'
 setup(
     name="wordvecspace",
     version=version,
     description="A high performance pure python module that helps in"
                 " loading and performing operations on word vector spaces"
-                " created using Google's Word2vec tool.",
+                " created using Google's Word2vec tool. It also supports"
+                " converting word vector space data (vectors and vocabulary)"
+                " from Google Word2Vec format to WordVecSpace format.",
     long_description=long_description,
     keywords='wordvecspace',
     author='Deep Compute, LLC',
@@ -37,12 +39,12 @@ setup(
     download_url="https://github.com/deep-compute/wordvecspace/tarball/%s" % version,
     license='MIT License',
     install_requires=[
-        'numpy',
-        'pandas',
-        'numba',
+        'numpy==1.13.1',
+        'pandas==0.20.3',
+        'numba==0.34.0',
     ],
     extras_require={
-        'cuda': ['pycuda', 'scikit-cuda'],
+        'cuda': ['pycuda==2017.1.1', 'scikit-cuda==0.5.1'],
     },
     package_dir={'wordvecspace': 'wordvecspace'},
     packages=find_packages('.'),
@@ -53,5 +55,11 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
     ],
-    test_suite='test.suite'
+    test_suite='test.suite',
+    entry_points={
+        "console_scripts": [
+            "wordvecspace = wordvecspace:main",
+        ]
+    }
+
 )

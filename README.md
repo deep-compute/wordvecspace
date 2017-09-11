@@ -7,9 +7,62 @@ A high performance pure python module that helps in loading and performing opera
 
 ```bash
 sudo apt install libopenblas-base
+sudo pip install wordvecspace
 ```
 
 ## Usage
+
+### Preparing data
+
+Before we can start using the library, we need access to some
+word vector space data. Here are two ways to get that.
+
+#### Download pre-computed sample data
+
+```bash
+$ wget https://s3.amazonaws.com/deepcompute-public/data/wordvecspace/small_test_data.tgz
+$ tar zxvf small_test_data.tgz
+```
+
+> NOTE: We got this data by downloading the `text8` corpus
+> from this location (http://mattmahoney.net/dc/text8.zip) and converting that to `WordVecSpace`
+> format. You can do the same conversion process by reading
+> the instructions in the following section.
+
+#### Computing your own data
+
+You can compute a word vector space on an arbitrary text corpus
+by using Google's word2vec tool. Here is an example on how to do
+that for the sample `text8` corpus.
+
+```bash
+$ git clone https://github.com/tmikolov/word2vec.git 
+
+# 1. Navigate to the folder word2vec
+# 2. open demo-word.sh for editing
+# 3. Edit "time ./word2vec -train text8 -output vectors.bin -cbow 1 -size 200 -window 8 -negative 25 -hs 0 -sample 1e-4 -threads 20 -binary 1 -iter 15" to "time ./word2vec -train text8 -output vectors.bin -cbow 1 -size 5 -window 8 -negative 25 -hs 0 -sample 1e-4 -threads 20 -binary 1 -save-vocab vocab.txt -iter 15" to get vocab.txt file also as output.
+# 4. Run demo-word.sh
+
+$ chmod +x demo-word.sh
+$ ./demo-word.sh
+
+# This will produce the output files (vectors.bin and vocab.txt)
+```
+
+These files (vectors.bin and vocab.txt) cannot be directly loaded
+by the `wordvecspace` module. You'll first have to convert them
+to the `WordVecSpace` format.
+
+
+```bash
+$ wordvecspace convert <input_dir> <output_dir>
+
+# <input_dir> is the directory which has vocab.txt and vectors.bin
+# <output_dir> is the directory where you want to put your output files
+
+# You can also generate shards by specifying number of vectors per each shard
+$ wordvecspace convert <input_dir> <output_dir> -n 5000
+```
 
 ### Importing
 ```python
@@ -53,18 +106,18 @@ wordvecspace.UnknownWord: "inidia"
 # Get the word vector for a word india
 
 >>> print wv.get_word_vector("india")
-[-6.44819975 -2.16358566  5.72767735 -3.77464485  3.58295298]
+[-6.4482 -2.1636  5.7277 -3.7746  3.583 ]
 
 # Get the unit word vector for a word india
 >>> print wv.get_word_vector("india", normalized=True)
-[-0.62585545 -0.20999533  0.55592233 -0.36636305  0.34775764]
+[-0.6259 -0.21    0.5559 -0.3664  0.3478]
 
 >>> print wv.get_word_vector("india")
-[-6.44819975 -2.16358566  5.72767735 -3.77464485  3.58295298]
+[-6.4482 -2.1636  5.7277 -3.7746  3.583 ]
 
 # Get the unit word vector for a word india
 >>> print wv.get_word_vector("india", normalized=True)
-[-0.62585545 -0.20999533  0.55592233 -0.36636305  0.34775764]
+[-0.6259 -0.21    0.5559 -0.3664  0.3478]
 
 # Get the unit vector for a word inidia.
 >>> print wv.get_word_vector('inidia', normalized=True, raise_exc=True)
@@ -116,65 +169,62 @@ wordvecspace.UnknownWord: "inidia"
 ```python
 # Get Vector magnitude of the word "india"
 >>> print wv.get_vector_magnitudes("india")
-[ 10.30301762]
+[ 10.303]
 
 >>> print wv.get_vector_magnitudes(["india", "usa"])
-[ 10.30301762   7.36207819]
+[ 10.303   7.3621]
 
 >>> print wv.get_vector_magnitudes(["inidia", "usa"])
-[ 0.          7.36207819]
+[ 0.          7.3621]
 
 >>> print wv.get_vector_magnitudes(["india", "usa"])
-[ 10.30301762   7.36207819]
+[ 10.303    7.3621]
 
 >>> print wv.get_vector_magnitudes(["inidia", "usa"])
-[ 0.          7.36207819]
+[ 0.          7.3621]
 ```	
 
 ### Get vectors for list of words
 ```python
 # Get vectors for list of words ["usa", "india"]
 >>> print wv.get_word_vectors(["usa", "india"])
-[[-0.72164571 -0.05566886  0.41082662  0.54941767  0.07409521]
- [-0.62585545 -0.20999533  0.55592233 -0.36636305  0.34775764]]
+[[-0.7216 -0.0557  0.4108  0.5494  0.0741]
+ [-0.6259 -0.21    0.5559 -0.3664  0.3478]]
 ```
 
 ### Get distance between two words 
 ```python
 # Get distance between "india", "usa"
 >>> print wv.get_distance("india", "usa")
-0.516205
+0.48379534483
 
 # Get the distance between 250, "india"
 >>> print wv.get_distance(250, "india")
--0.163976
+1.16397565603
 ```
 
 ### Get distance between list of words
 ```python
 >>> print wv.get_distances("for", ["to", "for", "india"])
-[[ 0.85009682]
- [ 1.00000012]
- [-0.38545406]]
+[[  1.4990e-01]
+ [ -1.1921e-07]
+ [  1.3855e+00]]
 
 >>> print wv.get_distances("for", ["to", "for", "inidia"])
-[[ 0.85009682]
- [ 1.00000012]
- [ 0.        ]]
+[[  1.4990e-01]
+ [ -1.1921e-07]
+ [  1.0000e+00]]
 
 >>> print wv.get_distances(["india", "for"], ["to", "for", "usa"])
-[[-0.18296985 -0.38545409  0.51620466]
- [ 0.85009682  1.00000012 -0.49754807]]
+[[  1.1830e+00   1.3855e+00   4.8380e-01]
+ [  1.4990e-01  -1.1921e-07   1.4975e+00]]
 
 >>> print wv.get_distances(["india", "usa"])
-[[-0.49026281  0.57980162  0.73099834 ..., -0.20406421 -0.35388517
-   0.38457203]
- [-0.80836529  0.04589185 -0.16784868 ...,  0.4037039  -0.04579565
-  -0.16079855]]
+[[ 1.4903  0.4202  0.269  ...,  1.2041  1.3539  0.6154]
+ [ 1.8084  0.9541  1.1678 ...,  0.5963  1.0458  1.1608]]
 
 >>> print wv.get_distances(["andhra"])
-[[-0.3432439   0.42185491  0.76944059 ..., -0.09365848 -0.13691582
-   0.57156253]]
+[[ 1.3432  0.5781  0.2306 ...,  1.0937  1.1369  0.4284]]
 ```
 
 ### Get nearest neighbors 
@@ -216,3 +266,4 @@ $ python setup.py test
 The `WordVecSpace` from the `cuda` module is a drop-in replacement for the CPU based `WordVecSpace` class showcased above.
 
 > NOTE: The vector space size must fit on available GPU ram for this to work
+> Also, you will need to install cuda support by doing "sudo pip install wordvecspace[cuda]"
