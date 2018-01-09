@@ -39,7 +39,7 @@ setup(
     download_url="https://github.com/deep-compute/wordvecspace/tarball/%s" % version,
     license='MIT License',
     install_requires=[
-        'numpy==1.14.0',
+        'numpy==1.13.1',
         'pandas==0.20.3',
         'numba==0.36.2',
         'basescript'
