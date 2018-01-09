@@ -6,8 +6,8 @@ A high performance pure python module that helps in loading and performing opera
 > Prerequisites: Python2.7
 
 ```bash
-sudo apt install libopenblas-base
-sudo pip install wordvecspace
+$ sudo apt install libopenblas-base
+$ sudo pip install wordvecspace
 ```
 
 ## Usage
@@ -258,6 +258,9 @@ $ python setup.py test
 ## GPU acceleration
 
 `wordvecspace` can take advantage of an Nvidia GPU to perform some operations significantly faster. This is as simple as doing
+```bash
+$ pip install wordvecspace[cuda]
+```
 
 ```python
 >>> from wordvecspace.cuda import WordVecSpace

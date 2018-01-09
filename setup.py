@@ -22,7 +22,7 @@ def get_long_description():
 
 long_description = get_long_description()
 
-version = '0.4'
+version = '0.4.1'
 setup(
     name="wordvecspace",
     version=version,
@@ -39,9 +39,9 @@ setup(
     download_url="https://github.com/deep-compute/wordvecspace/tarball/%s" % version,
     license='MIT License',
     install_requires=[
-        'numpy==1.13.1',
+        'numpy==1.14.0',
         'pandas==0.20.3',
-        'numba==0.34.0',
+        'numba==0.36.2',
         'basescript'
     ],
     extras_require={
