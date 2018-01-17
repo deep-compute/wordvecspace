@@ -10,7 +10,7 @@ def get_long_description():
     long_description = ""
 
     for d in dirs:
-        rst_readme = os.path.join(d, "README.rst")
+        rst_readme = os.path.join(d, "README.md")
         if not os.path.exists(rst_readme):
             continue
 
@@ -22,7 +22,7 @@ def get_long_description():
 
 long_description = get_long_description()
 
-version = '0.4.1'
+version = '0.4.2'
 setup(
     name="wordvecspace",
     version=version,
