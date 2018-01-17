@@ -63,13 +63,13 @@ $ wordvecspace convert <input_dir> <output_dir>
 # You can also generate shards by specifying number of vectors per each shard
 $ wordvecspace convert <input_dir> <output_dir> -n 5000
 ```
-> wordvecspace can be used in two ways (Interact or Import)
-### Interact
+### wordvecspace can be used in two ways (Interact or Import)
+#### Interact
 ```bash
 $ wordvecspace interact <input_dir>
 ```
 
-### Import and load data (Vector and Vocab information)
+#### Import and load data (Vector and Vocab information)
 ```python
 >>> from wordvecspace import WordVecSpace
 >>> wv = WordVecSpace('/path/to/data/')
