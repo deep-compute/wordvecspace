@@ -63,7 +63,7 @@ $ wordvecspace convert <input_dir> <output_dir>
 # You can also generate shards by specifying number of vectors per each shard
 $ wordvecspace convert <input_dir> <output_dir> -n 5000
 ```
-### wordvecspace can be used in two ways (Interact or Import)
+### wordvecspace can be used in two ways (`Interact` or `Import and load data`)
 #### Interact
 ```bash
 $ wordvecspace interact <input_dir>
@@ -75,6 +75,7 @@ $ wordvecspace interact <input_dir>
 >>> wv = WordVecSpace('/path/to/data/')
 >>> wv.load()
 ```
+> You can use any one of these `interact` or `Import and load data`
 
 ### Check if a word exists or not in the word vector space
 ```python
