@@ -42,6 +42,7 @@ setup(
         'numpy==1.13.1',
         'pandas==0.20.3',
         'numba==0.36.2',
+        'llvmlite==0.21.0',
         'basescript'
     ],
     extras_require={
