@@ -63,19 +63,36 @@ $ wordvecspace convert <input_dir> <output_dir>
 # You can also generate shards by specifying number of vectors per each shard
 $ wordvecspace convert <input_dir> <output_dir> -n 5000
 ```
+### Interactive console
+```bash
+$ wordvecspace interact <input_dir>
 
+# <input_dir> is the directory which has vocab.txt and vectors.npy
+```
+Example:
+```bash
+$ wordvecspace interact /home/user/data
+
+Total number of vectors and dimensions in .npy file (71291, 5)
+
+>>> help
+['DEFAULT_K', 'VECTOR_FNAME', 'VOCAB_FNAME', '__class__', '__delattr__', '__dict__', '__doc__', '__format__', '__getattribute__', '__hash__', '__init__', '__module__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_load_vocab', '_make_array', '_perform_dot', '_perform_sgemm', '_perform_sgemv', 'data_dir', 'does_word_exist', 'get_distance', 'get_distances', 'get_nearest_neighbors', 'get_vector_magnitudes', 'get_word_at_index', 'get_word_index', 'get_word_occurrences', 'get_word_vector', 'get_word_vectors', 'load', 'magnitudes', 'num_dimensions', 'num_vectors', 'vectors', 'word_indices', 'word_occurrences', 'words']
+
+WordVecSpace console
+>>> wv = WordVecSpace
+
+```
 ### Importing
 ```python
 >>> from wordvecspace import WordVecSpace
 ```
 
-### Loading data (Vector and Vocab information)
+#### Loading data (Vector and Vocab information)
 ```python
 >>> wv = WordVecSpace('/path/to/data/')
 >>> wv.load()
 ```
-
-### Check if a word exists or not in the word vector space
+#### Check if a word exists or not in the word vector space
 ```python
 >>> print wv.does_word_exist("india")
 True
@@ -84,7 +101,7 @@ True
 False
 ```
 
-### Get the index of a word
+#### Get the index of a word
 ```python
 >>> print wv.get_word_index("india")
 509
@@ -101,7 +118,7 @@ Traceback (most recent call last):
 wordvecspace.UnknownWord: "inidia"
 ```
 
-### Get vector for given word or index
+#### Get vector for given word or index
 ```python
 # Get the word vector for a word india
 
@@ -134,13 +151,13 @@ wordvecspace.UnknownWord: "inidia"
 [ 0.  0.  0.  0.  0.]
 ```
 
-### Get Word at Index 
+#### Get Word at Index 
 ```python
 # Get word at Index 509
 >>> print wv.get_word_at_index(509)
 india
 ```
-### Get occurrences of the word 
+#### Get occurrences of the word 
 ```python
 # Get occurrences of the word "india"
 >>> print wv.get_word_occurrences("india")
@@ -165,7 +182,7 @@ Traceback (most recent call last):
 wordvecspace.UnknownWord: "inidia"
 ```
 
-### Get Vector magnitude of the word 
+#### Get Vector magnitude of the word 
 ```python
 # Get Vector magnitude of the word "india"
 >>> print wv.get_vector_magnitudes("india")
@@ -184,7 +201,7 @@ wordvecspace.UnknownWord: "inidia"
 [ 0.          7.3621]
 ```	
 
-### Get vectors for list of words
+#### Get vectors for list of words
 ```python
 # Get vectors for list of words ["usa", "india"]
 >>> print wv.get_word_vectors(["usa", "india"])
@@ -192,7 +209,7 @@ wordvecspace.UnknownWord: "inidia"
  [-0.6259 -0.21    0.5559 -0.3664  0.3478]]
 ```
 
-### Get distance between two words 
+#### Get distance between two words 
 ```python
 # Get distance between "india", "usa"
 >>> print wv.get_distance("india", "usa")
@@ -203,7 +220,7 @@ wordvecspace.UnknownWord: "inidia"
 1.16397565603
 ```
 
-### Get distance between list of words
+#### Get distance between list of words
 ```python
 >>> print wv.get_distances("for", ["to", "for", "india"])
 [[  1.4990e-01]
@@ -227,7 +244,7 @@ wordvecspace.UnknownWord: "inidia"
 [[ 1.3432  0.5781  0.2306 ...,  1.0937  1.1369  0.4284]]
 ```
 
-### Get nearest neighbors 
+#### Get nearest neighbors 
 ```python
 # Get nearest neighbours for given word or index
 >>> print wv.get_nearest_neighbors("india", 20)
