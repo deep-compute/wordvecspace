@@ -24,8 +24,8 @@ deploy:
     - wordvecspace/command.py
     - wordvecspace/convert.py
     - wordvecspace/cuda.py
-  name: wordvecspace-0.4.1
-  tag_name: 0.4.1
+  name: wordvecspace-0.4.2
+  tag_name: 0.4.2
   on:
     repo: deep-compute/wordvecspace
   # pypitest
