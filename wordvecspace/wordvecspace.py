@@ -224,7 +224,7 @@ class WordVecSpace(object):
     def does_word_exist(self, word):
         '''
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
-        >>> wv._load()
+        >>> wv.load()
         >>> print(wv.does_word_exist("india"))
         True
         >>> print(wv.does_word_exist("inidia"))
@@ -239,7 +239,7 @@ class WordVecSpace(object):
         then return that
 
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
-	>>> wv._load()
+	>>> wv.load()
 	>>> print(wv.get_word_index("india"))
         509
         >>> print(wv.get_word_index("inidia"))
@@ -266,7 +266,7 @@ class WordVecSpace(object):
     def get_word_at_index(self, index, raise_exc=False):
         '''
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
-        >>> wv._load()
+        >>> wv.load()
 	>>> print(wv.get_word_at_index(509))
 	india
         '''
@@ -281,7 +281,7 @@ class WordVecSpace(object):
     def get_word_vector(self, word_or_index, normalized=False, raise_exc=False):
         '''
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
-        >>> wv._load()
+        >>> wv.load()
 	>>> print(wv.get_word_vector('india'))
         [-6.4482 -2.1636  5.7277 -3.7746  3.583 ]
         >>> print(wv.get_word_vector(509, normalized=True))
@@ -314,7 +314,7 @@ class WordVecSpace(object):
     def get_vector_magnitudes(self, words_or_indices, raise_exc=False):
         '''
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
-        >>> wv._load()
+        >>> wv.load()
         >>> print(wv.get_vector_magnitudes(["hi", "india"]))
         [  8.7948  10.303 ]
         >>> print(wv.get_vector_magnitudes(["inidia", "india"]))
@@ -338,7 +338,7 @@ class WordVecSpace(object):
     def get_word_occurrences(self, word_or_index, raise_exc=False):
         '''
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
-        >>> wv._load()
+        >>> wv.load()
         >>> print(wv.get_word_occurrences(5327))
         297
         >>> print(wv.get_word_occurrences("india"))
@@ -353,7 +353,7 @@ class WordVecSpace(object):
     def get_word_vectors(self, words_or_indices, raise_exc=False):
         '''
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
-        >>> wv._load()
+        >>> wv.load()
 	>>> print(wv.get_word_vectors(["hi", "india"]))
         [[ 0.2473  0.2535 -0.3206  0.8058  0.3501]
          [-0.6259 -0.21    0.5559 -0.3664  0.3478]]
@@ -383,7 +383,7 @@ class WordVecSpace(object):
         '''
         Get cosine distance between two words
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
-        >>> wv._load()
+        >>> wv.load()
 	>>> print(wv.get_distance(250, "india"))
 	1.16397565603
         '''
@@ -399,7 +399,7 @@ class WordVecSpace(object):
         get_distances(word, words)
         get_distances(words_x, words_y)
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
-        >>> wv._load()
+        >>> wv.load()
 	>>> res = wv.get_distances("for", ["to", "for", "india"])
         >>> check_equal(res, np.array([[  1.4990e-01], [ -1.1921e-07], [  1.3855e+00]], dtype=np.float32), decimal=4)
         >>> res = wv.get_distances("for", ["to", "for", "inidia"])
@@ -450,7 +450,7 @@ class WordVecSpace(object):
     def get_nearest_neighbors(self, word, k=DEFAULT_K):
         '''
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
-        >>> wv._load()
+        >>> wv.load()
         >>> print(wv.get_nearest_neighbors("india", 20))
         ...
         Int64Index([  509,   486, 14208, 20639,  8573,  3389,  5226, 20919, 10172,

@@ -76,7 +76,10 @@ Example:
 ```bash
 $ wordvecspace runserver /home/user/data -p 8000
 
+# Make request to the wordvecspace server
 $ curl "http://localhost:8888/api/does_word_exist?word=india"
+
+# You will get output like this
 {"result": true, "success": true}
 ```
 ### Interactive console

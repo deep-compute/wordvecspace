@@ -11,12 +11,6 @@ class WordVecSpaceCommand(BaseScript):
     DEFAULT_PORT = 8900
 
     def runserver(self):
-        wv = Tornado_wvs(self.args.input_dir)
-        wv.load()
-
-        api = API(Logger, default_version='v1')
-        api.register(wv, 'v1')
-
         app = make_app()
         app.listen(self.args.port)
         tornado.ioloop.IOLoop.current().start()

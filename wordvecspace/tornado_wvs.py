@@ -47,14 +47,9 @@ wv = Tornado_wvs("/home/ram/Ram/data/shard_0")
 wv.load()
 
 api = API(Logger, default_version='v1')
-api.register(wv, 'v1', 'dc')
+api.register(wv, 'v1')
 
 def make_app():
     return tornado.web.Application([
         (r'^/api/.*', RequestHandler, dict(api=api)),
     ])
-
-if __name__ == "__main__":
-    app = make_app()
-    app.listen(8888)
-    tornado.ioloop.IOLoop.current().start()
