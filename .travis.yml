@@ -1,6 +1,6 @@
 language: python
 python:
-- '2.7'
+- '3.5'
 before_install:
 - wget 'https://s3.amazonaws.com/deepcompute-public/data/wordvecspace/small_test_data.tgz'
   && tar xvzf small_test_data.tgz
@@ -24,8 +24,8 @@ deploy:
     - wordvecspace/command.py
     - wordvecspace/convert.py
     - wordvecspace/cuda.py
-  name: wordvecspace-0.4.2
-  tag_name: 0.4.2
+  name: wordvecspace-0.5
+  tag_name: 0.5
   on:
     repo: deep-compute/wordvecspace
   # pypitest

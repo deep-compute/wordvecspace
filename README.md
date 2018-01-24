@@ -63,6 +63,22 @@ $ wordvecspace convert <input_dir> <output_dir>
 # You can also generate shards by specifying number of vectors per each shard
 $ wordvecspace convert <input_dir> <output_dir> -n 5000
 ```
+
+### wordvecspace Service
+```bash
+$ wordvecspace runserver <input_dir> -p <port_no>
+
+# -p is for giving port. If it is not mentioned, by default wordvecspace will run on 8900 port.
+# <port_no> is the port number of wordvecspace
+# <input_dir> is the directory which has vocab.txt and vectors.npy.
+```
+Example:
+```bash
+$ wordvecspace runserver /home/user/data -p 8000
+
+$ curl "http://localhost:8888/api/does_word_exist?word=india"
+{"result": true, "success": true}
+```
 ### Interactive console
 ```bash
 $ wordvecspace interact <input_dir>

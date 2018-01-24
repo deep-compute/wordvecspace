@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '0.4.2'
+version = '0.5'
 setup(
     name="wordvecspace",
     version=version,
@@ -28,7 +28,7 @@ setup(
     packages=find_packages('.'),
     include_package_data=True,
     classifiers=[
-        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3.5",
         "Environment :: Console",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
