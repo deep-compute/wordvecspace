@@ -6,7 +6,7 @@ before_install:
   && tar xvzf small_test_data.tgz
 - export WORDVECSPACE_DATADIR='./small_test_data'
 install: 
-- pip install .
+- pip install .[service]
 - sudo apt install libopenblas-base
 script:
 - python setup.py test
