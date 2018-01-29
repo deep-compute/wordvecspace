@@ -1,19 +1,19 @@
 import code
 
 from basescript import BaseScript
+
 from .convert import GWVec2WordVecSpace
 from .wordvecspace import WordVecSpace
-from .tornado_wvs import *
+from .server import WVSServer
 
 class WordVecSpaceCommand(BaseScript):
-    DESC = 'Word Vector Space command-line tool'
+    DESC = 'Word Vector Space command-line tool and Service'
 
     DEFAULT_PORT = 8900
 
     def runserver(self):
-        app = make_app()
-        app.listen(self.args.port)
-        tornado.ioloop.IOLoop.current().start()
+        server = WVSServer(self.args.input_dir, self.args.port)
+        server.start()
 
     def convert(self):
         convertor = GWVec2WordVecSpace(

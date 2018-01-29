@@ -206,8 +206,9 @@ class WordVecSpace(object):
         >>> import io
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
         >>> s = io.StringIO('the 10\nand 50\n')
-        >>> wv._load_vocab(s, 2)
-        (['the', 'and'], {'the': 0, 'and': 1}, array([10, 50], dtype=uint64))
+        >>> from pprint import pprint
+        >>> pprint(wv._load_vocab(s, 2))
+        (['the', 'and'], {'and': 1, 'the': 0}, array([10, 50], dtype=uint64))
         '''
         word_indices = {}
         words = []
@@ -390,7 +391,6 @@ class WordVecSpace(object):
         return 1 - self._perform_dot(\
             self.get_word_vector(word1, normalized=True, raise_exc=raise_exc),\
             self.get_word_vector(word2, normalized=True, raise_exc=raise_exc).T)
-
 
     def get_distances(self, row_words, col_words=None, raise_exc=False):
         '''
