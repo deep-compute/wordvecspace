@@ -19,7 +19,7 @@ setup(
         'numpy==1.13.1',
         'pandas==0.20.3',
         'numba==0.36.2',
-        'basescript',
+        'basescript==0.2.0',
     ],
     extras_require={
         'cuda': ['pycuda==2017.1.1', 'scikit-cuda==0.5.1'],

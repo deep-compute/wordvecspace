@@ -4,7 +4,7 @@ from basescript import BaseScript
 
 from .convert import GWVec2WordVecSpace
 from .wordvecspace import WordVecSpace
-from .server import WVSServer
+from .server import WordVecSpaceServer
 
 class WordVecSpaceCommand(BaseScript):
     DESC = 'Word Vector Space command-line tool and Service'
@@ -12,7 +12,7 @@ class WordVecSpaceCommand(BaseScript):
     DEFAULT_PORT = 8900
 
     def runserver(self):
-        server = WVSServer(self.args.input_dir, self.args.port)
+        server = WordVecSpaceServer(self.args.input_dir, self.args.port, log=self.log)
         server.start()
 
     def convert(self):
@@ -61,13 +61,13 @@ class WordVecSpaceCommand(BaseScript):
                 help='Input directory containing WordVecSpace format files'
                 ' (vocab.txt, vectors.npy)')
 
-        run_server = subcommands.add_parser('runserver',
+        runserver_cmd = subcommands.add_parser('runserver',
                 help='WordVecSpace Service')
-        run_server.set_defaults(func=self.runserver)
-        run_server.add_argument('input_dir',
+        runserver_cmd.set_defaults(func=self.runserver)
+        runserver_cmd.add_argument('input_dir',
                 help='Input directory containing WordVecSpace format files'
                 ' (vocab.txt, vectors.npy)')
-        run_server.add_argument('-p', '--port',
+        runserver_cmd.add_argument('-p', '--port',
                 default=self.DEFAULT_PORT, type=int,
                 help='Port for wordvecspace service to run.')
 

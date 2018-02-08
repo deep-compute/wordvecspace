@@ -238,6 +238,7 @@ Int64Index([  509,   486, 14208, 20639,  8573,  3389,  5226, 20919, 10172,
 ```
 
 ### Service
+
 ```bash
 # Run wordvecspace as a service (which continuously listens on some port for API requests)
 $ wordvecspace runserver <input_dir> -p <port_no>
@@ -246,35 +247,39 @@ $ wordvecspace runserver <input_dir> -p <port_no>
 # <port_no> is the port number of wordvecspace
 # <input_dir> is the directory which has vocab.txt and vectors.npy.
 ```
+
 Example:
+
 ```bash
 $ wordvecspace runserver /home/user/data -p 8000
 
 # Make API request
-$ curl "http://localhost:8000/api/does_word_exist?word=india"
+$ curl "http://localhost:8000/api/v1/does_word_exist?word=india"
 {"result": true, "success": true}
 ```
+
 #### Making call to all API methods
+
 ```bash
-$ http://localhost:8000/api/does_word_exist?word=india
+$ http://localhost:8000/api/v1/does_word_exist?word=india
 
-$ http://localhost:8000/api/get_word_index?word=india
+$ http://localhost:8000/api/v1/get_word_index?word=india
 
-$ http://localhost:8000/api/get_word_at_index?index=509
+$ http://localhost:8000/api/v1/get_word_at_index?index=509
 
-$ http://localhost:8000/api/get_word_vector?word_or_index=509
+$ http://localhost:8000/api/v1/get_word_vector?word_or_index=509
 
-$ http://localhost:8000/api/get_vector_magnitudes?words_or_indices=[88, "india"]
+$ http://localhost:8000/api/v1/get_vector_magnitudes?words_or_indices=[88, "india"]
 
-$ http://localhost:8000/api/get_word_occurrences?word_or_index=india
+$ http://localhost:8000/api/v1/get_word_occurrences?word_or_index=india
 
-$ http://localhost:8000/api/get_word_vectors?words_or_indices=[1, 'india']
+$ http://localhost:8000/api/v1/get_word_vectors?words_or_indices=[1, 'india']
 
-$ http://localhost:8000/api/get_distance?word1=ap&word2=india
+$ http://localhost:8000/api/v1/get_distance?word1=ap&word2=india
 
-$ http://localhost:8000/api/get_distances?row_words=india
+$ http://localhost:8000/api/v1/get_distances?row_words=india
 
-$ http://localhost:8000/api/get_nearest_neighbors?word=india&k=100
+$ http://localhost:8000/api/v1/get_nearest_neighbors?word=india&k=100
 ```
 > To see all API methods of wordvecspace please run http://localhost:8000/api/apidoc
 
