@@ -58,8 +58,8 @@ class WVSServer(object):
         self.port = port
 
     def start(self):
-        self.api = API(Logger, default_version='v1')
-        self.api.register(WVSAPIFunctions(self.input_dir), 'v1')
+        self.api = API(Logger, default_version='wvs')
+        self.api.register(WVSAPIFunctions(self.input_dir), 'wvs')
 
         app = self._make_app()
         app.listen(self.port)

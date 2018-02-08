@@ -276,6 +276,8 @@ $ http://localhost:8000/api/get_distances?row_words=india
 
 $ http://localhost:8000/api/get_nearest_neighbors?word=india&k=100
 ```
+> To see all API methods of wordvecspace please run http://localhost:8000/api/apidoc
+
 ### Interactive console
 ```bash
 $ wordvecspace interact <input_dir>
