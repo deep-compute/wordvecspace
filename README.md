@@ -281,7 +281,8 @@ $ http://localhost:8000/api/v1/get_distances?row_words=india
 
 $ http://localhost:8000/api/v1/get_nearest_neighbors?word=india&k=100
 ```
-> To see all API methods of wordvecspace please run http://localhost:8000/api/apidoc
+
+> To see all API methods of wordvecspace please run http://localhost:8000/api/v1/apidoc
 
 ### Interactive console
 ```bash
@@ -289,6 +290,7 @@ $ wordvecspace interact <input_dir>
 
 # <input_dir> is the directory which has vocab.txt and vectors.npy
 ```
+
 Example:
 ```bash
 $ wordvecspace interact /home/user/data

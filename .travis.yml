@@ -9,7 +9,7 @@ install:
 - pip install .[service]
 - sudo apt install libopenblas-base
 script:
-- python setup.py test
+- python3 setup.py test
 deploy:
 - provider: releases
   skip_cleanup: true

@@ -377,7 +377,6 @@ class WordVecSpace(object):
             else:
                 wmat[i].fill(0.0)
 
-
         return wmat
 
     def get_distance(self, word1, word2, raise_exc=False):
@@ -447,7 +446,7 @@ class WordVecSpace(object):
 
     DEFAULT_K = 512
 
-    def get_nearest_neighbors(self, word, k=DEFAULT_K):
+    def get_nearest_neighbors(self, word, k=DEFAULT_K, raise_exc=False):
         '''
         >>> wv = WordVecSpace(DATADIR_ENV_VAR)
         >>> wv.load()
@@ -459,7 +458,7 @@ class WordVecSpace(object):
                    dtype='int64')
         '''
 
-        distances = self.get_distances(word)
+        distances = self.get_distances(word, raise_exc)
         distances = distances.reshape((len(distances),))
 
         distances = pd.Series(distances)

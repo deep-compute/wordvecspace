@@ -24,7 +24,7 @@ setup(
     ],
     extras_require={
         'cuda': ['pycuda==2017.1.1', 'scikit-cuda==0.5.1'],
-        'service': ['kwikapi[tornado]']
+        'service': ['kwikapi[tornado]==0.2']
     },
     package_dir={'wordvecspace': 'wordvecspace'},
     packages=find_packages('.'),
@@ -35,7 +35,7 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
     ],
-    test_suite='test.suite',
+    test_suite='test.suitefn',
     entry_points={
         "console_scripts": [
             "wordvecspace = wordvecspace:main",

@@ -11,17 +11,15 @@ class WordVecSpaceCommand(BaseScript):
 
     DEFAULT_PORT = 8900
 
-    def runserver(self):
-        server = WordVecSpaceServer(self.args.input_dir, self.args.port, log=self.log)
-        server.start()
-
     def convert(self):
+        #FIXME: track issue to send logger
         convertor = GWVec2WordVecSpace(
                         self.args.input_dir,
                         self.args.output_dir,
                         self.args.num_vecs_per_shard)
         convertor.start()
 
+    # FIXME: track issue to remove sharding or not
     DEFAULT_NUM_VECS_PER_SHARD = 0
 
     def interact(self):
@@ -31,13 +29,17 @@ class WordVecSpaceCommand(BaseScript):
         vectors = interact.num_vectors
         dimensions = interact.num_dimensions
 
-        print ("Total number of vectors and dimensions in .npy file (%s, %s)" %(vectors, dimensions))
-        print ("")
-        print ("help")
-        print ("%s" %(dir(interact)))
+        print("Total number of vectors and dimensions in .npy file (%s, %s)" %(vectors, dimensions))
+        print("")
+        print("help")
+        print("%s" %(dir(interact)))
 
         namespace=dict(WordVecSpace=interact)
         code.interact("WordVecSpace Console", local=namespace)
+
+    def runserver(self):
+        server = WordVecSpaceServer(self.args.input_dir, self.args.port, log=self.log)
+        server.start()
 
     def define_subcommands(self, subcommands):
         super(WordVecSpaceCommand, self).define_subcommands(subcommands)
