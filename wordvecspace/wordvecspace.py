@@ -19,7 +19,8 @@ DATADIR_ENV_VAR = os.environ.get('WORDVECSPACE_DATADIR', ' ')
 
 # $export WORDVECSPACE_BLAS_FPATH=/usr/lib/libopenblas.so.0
 BLAS_LIBRARY_FPATH = os.environ.get('WORDVECSPACE_BLAS_FPATH',
-        '/usr/lib/libopenblas.so.0')
+        #'/usr/lib/libopenblas.so.0',
+        "/usr/lib/x86_64-linux-gnu/libopenblas.so.0")
 cblas = cdll.LoadLibrary(BLAS_LIBRARY_FPATH)
 
 # Some OpenBlas constants
@@ -458,7 +459,7 @@ class WordVecSpace(object):
                    dtype='int64')
         '''
 
-        distances = self.get_distances(word, raise_exc)
+        distances = self.get_distances(word, raise_exc=raise_exc)
         distances = distances.reshape((len(distances),))
 
         distances = pd.Series(distances)
