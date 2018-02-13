@@ -3,11 +3,11 @@
 A high performance pure python module that helps in loading and performing operations on word vector spaces created using Google's Word2vec tool.
 
 ## Installation
-> Prerequisites: Python2.7
+> Prerequisites: Python3.5
 
 ```bash
 $ sudo apt install libopenblas-base
-$ sudo pip install wordvecspace
+$ sudo pip3 install wordvecspace
 ```
 
 ## Usage
@@ -62,25 +62,6 @@ $ wordvecspace convert <input_dir> <output_dir>
 
 # You can also generate shards by specifying number of vectors per each shard
 $ wordvecspace convert <input_dir> <output_dir> -n 5000
-```
-### Interactive console
-```bash
-$ wordvecspace interact <input_dir>
-
-# <input_dir> is the directory which has vocab.txt and vectors.npy
-```
-Example:
-```bash
-$ wordvecspace interact /home/user/data
-
-Total number of vectors and dimensions in .npy file (71291, 5)
-
->>> help
-['DEFAULT_K', 'VECTOR_FNAME', 'VOCAB_FNAME', '__class__', '__delattr__', '__dict__', '__doc__', '__format__', '__getattribute__', '__hash__', '__init__', '__module__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_load_vocab', '_make_array', '_perform_dot', '_perform_sgemm', '_perform_sgemv', 'data_dir', 'does_word_exist', 'get_distance', 'get_distances', 'get_nearest_neighbors', 'get_vector_magnitudes', 'get_word_at_index', 'get_word_index', 'get_word_occurrences', 'get_word_vector', 'get_word_vectors', 'load', 'magnitudes', 'num_dimensions', 'num_vectors', 'vectors', 'word_indices', 'word_occurrences', 'words']
-
-WordVecSpace console
->>> wv = WordVecSpace
-
 ```
 ### Importing
 ```python
@@ -256,6 +237,73 @@ Int64Index([  509,   486, 14208, 20639,  8573,  3389,  5226, 20919, 10172,
            dtype='int64')
 ```
 
+### Service
+
+```bash
+# Run wordvecspace as a service (which continuously listens on some port for API requests)
+$ wordvecspace runserver <input_dir> -p <port_no>
+
+# -p is for giving port. If it is not mentioned, by default wordvecspace will run on 8900 port.
+# <port_no> is the port number of wordvecspace
+# <input_dir> is the directory which has vocab.txt and vectors.npy.
+```
+
+Example:
+
+```bash
+$ wordvecspace runserver /home/user/data -p 8000
+
+# Make API request
+$ curl "http://localhost:8000/api/v1/does_word_exist?word=india"
+{"result": true, "success": true}
+```
+
+#### Making call to all API methods
+
+```bash
+$ http://localhost:8000/api/v1/does_word_exist?word=india
+
+$ http://localhost:8000/api/v1/get_word_index?word=india
+
+$ http://localhost:8000/api/v1/get_word_at_index?index=509
+
+$ http://localhost:8000/api/v1/get_word_vector?word_or_index=509
+
+$ http://localhost:8000/api/v1/get_vector_magnitudes?words_or_indices=[88, "india"]
+
+$ http://localhost:8000/api/v1/get_word_occurrences?word_or_index=india
+
+$ http://localhost:8000/api/v1/get_word_vectors?words_or_indices=[1, 'india']
+
+$ http://localhost:8000/api/v1/get_distance?word1=ap&word2=india
+
+$ http://localhost:8000/api/v1/get_distances?row_words=india
+
+$ http://localhost:8000/api/v1/get_nearest_neighbors?word=india&k=100
+```
+
+> To see all API methods of wordvecspace please run http://localhost:8000/api/v1/apidoc
+
+### Interactive console
+```bash
+$ wordvecspace interact <input_dir>
+
+# <input_dir> is the directory which has vocab.txt and vectors.npy
+```
+
+Example:
+```bash
+$ wordvecspace interact /home/user/data
+
+Total number of vectors and dimensions in .npy file (71291, 5)
+
+>>> help
+['DEFAULT_K', 'VECTOR_FNAME', 'VOCAB_FNAME', '__class__', '__delattr__', '__dict__', '__doc__', '__format__', '__getattribute__', '__hash__', '__init__', '__module__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_load_vocab', '_make_array', '_perform_dot', '_perform_sgemm', '_perform_sgemv', 'data_dir', 'does_word_exist', 'get_distance', 'get_distances', 'get_nearest_neighbors', 'get_vector_magnitudes', 'get_word_at_index', 'get_word_index', 'get_word_occurrences', 'get_word_vector', 'get_word_vectors', 'load', 'magnitudes', 'num_dimensions', 'num_vectors', 'vectors', 'word_indices', 'word_occurrences', 'words']
+
+WordVecSpace console
+>>> wv = WordVecSpace
+
+```
 ## Running tests
 
 ```bash
