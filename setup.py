@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '0.5'
+version = '0.5.1'
 setup(
     name="wordvecspace",
     version=version,
@@ -20,10 +20,12 @@ setup(
         'pandas==0.20.3',
         'numba==0.36.2',
         'basescript==0.2.0',
+        'tables==3.4.2',
+        'annoy==1.11.4',
+        'cmph-cffi==0.3.0',
     ],
     extras_require={
         'cuda': ['pycuda==2017.1.1', 'scikit-cuda==0.5.1'],
-        'service': ['kwikapi[tornado]==0.2']
     },
     package_dir={'wordvecspace': 'wordvecspace'},
     packages=find_packages('.'),
@@ -34,11 +36,10 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
     ],
-    test_suite='test.suitefn',
+    test_suite = 'test.suite_test',
     entry_points={
         "console_scripts": [
             "wordvecspace = wordvecspace:main",
         ]
     }
-
 )

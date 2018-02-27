@@ -3,16 +3,23 @@
 import doctest
 import unittest
 
-from wordvecspace import wordvecspace, server
+from wordvecspace import fileformat
+from wordvecspace import mem
+from wordvecspace import annoy
+from wordvecspace import disk
 
-def suitefn():
+def suite_test():
     suite = unittest.TestSuite()
 
-    suite.addTests(doctest.DocTestSuite(wordvecspace))
-    suite.addTests(doctest.DocTestSuite(server))
+    suite.addTests(doctest.DocTestSuite(fileformat))
+    suite.addTests(doctest.DocTestSuite(mem))
+    suite.addTests(doctest.DocTestSuite(annoy))
+    suite.addTests(doctest.DocTestSuite(disk))
 
     return suite
 
 if __name__ == "__main__":
-    doctest.testmod(wordvecspace)
-    doctest.testmod(server)
+    doctest.testmod(fileformat)
+    doctest.testmod(mem)
+    doctest.testmod(annoy)
+    doctest.testmod(disk)
