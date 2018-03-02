@@ -2,6 +2,7 @@ import os
 import sys
 import tempfile
 
+import numpy as np
 import tables
 import cmph
 
@@ -36,16 +37,18 @@ class WordVecSpaceFile(object):
 
     VAL_TO_TABLE_NAME = {VECTOR: 'vectors', WORD: 'words', OCCURRENCE: 'occurrences'}
 
-    def __init__(self, input_file, dim, mode=DEFAULT_MODE):
+    def __init__(self, input_file, dim=None, mode=DEFAULT_MODE):
         self.mode = mode
         self.dim = dim
         self._fobj = tables.open_file(input_file, self.mode)
 
         if self.mode == 'w':
             self._create_new()
-            self._fobj.root.dimensions.append([self.dim])
+            self._fobj.root._v_attrs.dim = self.dim
 
         if self.mode == 'r':
+            self.dim = self._fobj.root._v_attrs.dim
+
             d = self._fobj.root
             t = self._create_tmpfile()
 
@@ -64,6 +67,9 @@ class WordVecSpaceFile(object):
             if os.path.exists(t.name):
                 os.remove(t.name)
 
+    def _make_array(self, shape, dtype):
+        return np.ndarray(shape, dtype)
+
     def _create_tmpfile(self):
         _, f_obj = tempfile.mkstemp()
 
@@ -80,7 +86,6 @@ class WordVecSpaceFile(object):
         f.create_earray(f.root, 'words', _char, (0,))
         f.create_earray(f.root, 'words_index', _int, (0,))
         f.create_earray(f.root, 'occurrences', _int, (0,))
-        f.create_earray(f.root, 'dimensions', _int, (0,))
 
         self._tmp_f = self._create_tmpfile()
 
@@ -173,8 +178,8 @@ class WordVecSpaceFile(object):
         try:
             vector = self.get(index, self.VECTOR)
         except IndexError:
-            # FIXME: Why not 0.0
-            vector = None
+            vector = self._make_array(dtype=np.float32, shape=(1, self.dim))
+            vector.fill(0.0)
 
         return vector
 

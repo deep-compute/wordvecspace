@@ -40,8 +40,8 @@ class GWVecBinReader(object):
             yield token, vec
 
 class GWVecBinWriter(object):
-    def __init__(self):
-        self.out = WordVecSpaceFile(self.outf, inp_vecs.dim, mode="w")
+    def __init__(self, outf, dim):
+        self.out = WordVecSpaceFile(outf, dim, mode="w")
 
     def write(self, token, vec, occur):
         self.out.add(token, vec, occur)
@@ -63,10 +63,11 @@ class GW2VectoWordVecSpaceFile(object):
     def start(self):
         inp_vec_f = open(os.path.join(self.in_dir, 'vectors.bin'), 'rb')
         inp_vecs = GWVecBinReader(inp_vec_f)
+        import pdb; pdb.set_trace()
 
         vocab_file = open(os.path.join(self.in_dir, 'vocab.txt'), 'r')
 
-        wr_vecs = GWVecBinWriter()
+        wr_vecs = GWVecBinWriter(self.outf, inp_vecs.dim)
 
         for token, vec in inp_vecs.iter_vectors():
             vec = np.fromstring(vec, dtype='float32')

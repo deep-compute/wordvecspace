@@ -12,12 +12,14 @@ from .mem import WordVecSpaceMem
 from .annoy import WordVecSpaceAnnoy
 
 class APIFunctions(object):
-    def __init__(self, _type, input_file, dim, n_trees, metric):
-        if _type == 'mem':
-            self.wv = WordVecSpaceMem(input_file, dim)
+    def __init__(self, _type, input_file, n_trees, metric):
+        self._type = _type
 
-        elif _type == 'annoy':
-            self.wv = WordVecSpaceAnnoy(input_file, dim, n_trees, metric)
+        if self._type == 'mem':
+            self.wv = WordVecSpaceMem(input_file, metric=metric)
+
+        elif self._type == 'annoy':
+            self.wv = WordVecSpaceAnnoy(input_file, n_trees=n_trees, metric=metric)
 
     def does_word_exist(self, word: str) -> bool:
         '''
@@ -131,21 +133,26 @@ class APIFunctions(object):
         Get vectors for given words or indices
 
         get_word_vectors(["hi", "india"]) => [[ 0.2473  0.2535 -0.3206  0.8058  0.3501], [-0.6259 -0.21    0.5559 -0.3664  0.3478]]
+
         get_word_vectors(["hi", "inidia"]) => [[ 0.2473  0.2535 -0.3206  0.8058  0.3501], [ 0.      0.      0.      0.      0.    ]]
         '''
 
         return self.wv.get_word_vectors(words_or_indices, normalized=normalized, raise_exc=raise_exc).tolist()
 
-    def get_distance(self, word_or_index1: Union[str, int], word_or_index2: Union[str, int], raise_exc: bool=False) -> float:
+    def get_distance(self, word_or_index1: Union[str, int], word_or_index2: Union[str, int], metric: Union[str, None]=None, raise_exc: bool=False) -> float:
         '''
         Get cosine distance between two words
 
         get_distance(250, "india") => 1.16397565603
+        get_distance(250, "india", metric='euclidean') => 1.5029966831207275
         '''
 
-        return self.wv.get_distance(word_or_index1, word_or_index2, raise_exc)
+        if self._type == 'mem':
+            return self.wv.get_distance(word_or_index1, word_or_index2, metric=metric, raise_exc=raise_exc)
 
-    def get_distances(self, row_words_or_indices: Union[str, int, tuple, list], col_words_or_indices: Union[list, None]=None, raise_exc: bool=False) -> list:
+        return self.wv.get_distance(word_or_index1, word_or_index2, raise_exc=raise_exc)
+
+    def get_distances(self, row_words_or_indices: Union[str, int, tuple, list], col_words_or_indices: Union[list, None]=None, metric: Union[str, None]=None, raise_exc: bool=False) -> list:
         '''
         Get distances between given words and all words in the vector space
 
@@ -155,37 +162,55 @@ class APIFunctions(object):
         get_distances(words_x, words_y)
 
         get_distances("for", ["to", "for", "india"] => [[  1.4990e-01], [ -1.1921e-07], [  1.3855e+00]]
+
         get_distances("for", ["to", "for", "inidia"]) => [[  1.4990e-01], [ -1.1921e-07], [  1.0000e+00]]
+
         get_distances(["india", "for"], ["to", "for", "usa"]) => [[  1.1830e+00,   1.3855e+00,   4.8380e-01], [  1.4990e-01,  -1.1921e-07,   1.4975e+00]]
+
         get_distances(["india", "usa"]) => [[ 1.4903,  0.4202,  0.269 , ...,  1.2041,  1.3539,  0.6154], [ 1.8084,  0.9541,  1.1678, ...,  0.5963,  1.0458,  1.1608]]
+
         get_distances(["andhra"]) => [[ 1.3432,  0.5781,  0.2306, ...,  1.0937,  1.1369,  0.4284]]
+
+        get_distances(["andhra"], metric='euclidean') => [[ 1.601   1.108   0.7739 ...,  1.4103  1.5646  1.1079]]
         '''
+        if self._type == 'mem':
+            return self.wv.get_distances(row_words_or_indices, col_words_or_indices=col_words_or_indices, metric=metric, raise_exc=raise_exc).tolist()
 
         return self.wv.get_distances(row_words_or_indices, col_words_or_indices=col_words_or_indices, raise_exc=raise_exc).tolist()
 
-    def get_nearest(self, words_or_indices: Union[str, int, list, tuple], k: int=512, combination: bool=False, raise_exc: bool=False) -> list:
+    def get_nearest(self, words_or_indices: Union[str, int, list, tuple], k: int=512, metric: Union[str, None]=None, combination: bool=False, raise_exc: bool=False) -> list:
         '''
         get_nearest_neighbors("india", 20) => [509, 486, 14208, 20639, 8573, 3389, 5226, 20919, 10172, 6866, 9772, 24149, 13942, 1980, 20932, 28413, 17910, 2196, 28738, 20855]
+
+        get_nearest(["ram", "india"], 5, metric='euclidean') => [[3844, 38851, 25381, 10830, 17049], [509, 486, 523, 4343, 14208]]
+
+        get_nearest(['india', 'bosnia'], 10, combination=True) => [14208, 486, 523, 4343, 42424, 509]
         '''
 
-        # FIXME: Improve the efficiency
-        neg = self.wv.get_nearest(words_or_indices, k, raise_exc)
-        for neg_key, item in enumerate(neg):
-            for item_key, val in enumerate(item):
-                item[item_key] = int(val)
-            neg[neg_key] = item
+        if self._type == 'mem':
+            neg = self.wv.get_nearest(words_or_indices, k, raise_exc=raise_exc, metric=metric)
+
+            if isinstance(words_or_indices, (tuple, list)) and len(words_or_indices) > 1:
+                for neg_key, item in enumerate(neg):
+                    for item_key, val in enumerate(item):
+                        item[item_key] = int(val)
+                    neg[neg_key] = item
+
+            else:
+                for key, val in enumerate(neg):
+                    neg[key] = int(val)
+        else:
+            neg = self.wv.get_nearest(words_or_indices, k, raise_exc=raise_exc)
 
         return neg
 
 class WordVecSpaceServer(object):
-    DEFAULT_PORT = 8900
     N_TREES = 1
     METRIC = 'angular'
 
-    def __init__(self, _type, input_file, dim, port=DEFAULT_PORT, n_trees=N_TREES, metric=METRIC, log=Logger):
+    def __init__(self, _type, input_file, port, n_trees=N_TREES, metric=METRIC, log=Logger):
         self._type = _type
         self.input_file = input_file
-        self.dim = dim
         self.port = port
         self.n_trees = n_trees
         self.metric = metric
@@ -195,7 +220,6 @@ class WordVecSpaceServer(object):
         self.api = API(log=self.log)
         self.api.register(APIFunctions(self._type,
                                     self.input_file,
-                                    self.dim,
                                     self.n_trees,
                                     self.metric), 'v1')
 

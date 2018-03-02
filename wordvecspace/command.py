@@ -19,6 +19,10 @@ class UnknownType(BaseException):
 class WordVecSpaceCommand(BaseScript):
     DESC = 'Word Vector Space command-line tool and service'
 
+    N_TREES = 1
+    METRIC = 'angular'
+    DEFAULT_PORT = 8900
+
     def convert(self):
         #FIXME: track issue to send logger
         convertor = GW2VectoWordVecSpaceFile(
@@ -28,55 +32,47 @@ class WordVecSpaceCommand(BaseScript):
         convertor.start()
 
     def _interact_common_code(self, interact, dim, _type):
-        print("Total number of vectors and dimensions in wvspace file\
-                (%s, %s)" %(interact.nvecs, dim))
-        print("\nhelp")
-        print("%s" %(dir(interact)))
+        print("%s console (vectors=%s dims=%s)" %(_type, interact.nvecs, dim))
 
         namespace = {}
-        namespace[_type] = interact
+        namespace['wv'] = interact
 
-        code.interact(_type + " Console", local=namespace)
+        code.interact("", local=namespace)
 
     def interact(self):
-        wvargs = self.args.wvargs
-        wvargs = dict(a.split('=', 1) for a in wvargs.split(':'))
-        wvargs['dim'] = int(wvargs['dim'])
-
-        if wvargs.get('n_trees'):
-            wvargs['n_trees'] = int(wvargs['n_trees'])
-
         if self.args.type == 'mem':
-            interact = WordVecSpaceMem(**wvargs)
+            interact = WordVecSpaceMem(self.args.input_file, self.args.metric)
 
-            self._interact_common_code(interact, wvargs['dim'], 'WordVecSpaceMem')
+            self._interact_common_code(interact, interact.dim, 'WordVecSpaceMem')
 
         elif self.args.type == 'annoy':
-            interact = WordVecSpaceAnnoy(**wvargs)
+            interact = WordVecSpaceAnnoy(self.args.input_file,
+                    metric=self.args.metric,
+                    n_trees=self.args.ntrees)
 
-            self._interact_common_code(interact, wvargs['dim'], 'WordVecSpaceAnnoy')
+            self._interact_common_code(interact, interact.dim, 'WordVecSpaceAnnoy')
 
         else:
             raise UnknownType(self.args.type)
 
     def runserver(self):
-        wvargs = self.args.wvargs
-        wvargs = dict(a.split('=', 1) for a in wvargs.split(':'))
-        wvargs['dim'] = int(wvargs['dim'])
-        wvargs['_type'] = self.args.type
-
-        if wvargs.get('port'):
-            wvargs['port'] = int(wvargs['port'])
-        if wvargs.get('n_trees'):
-            wvargs['n_trees'] = int(wvargs['n_trees'])
-
         if self.args.type == 'mem':
-            server = WordVecSpaceServer(**wvargs)
+            server = WordVecSpaceServer(self.args.type,
+                    self.args.input_file,
+                    metric=self.args.metric,
+                    port=self.args.port)
             server.start()
 
         elif self.args.type == 'annoy':
-            server = WordVecSpaceServer(**wvargs)
+            server = WordVecSpaceServer(self.args.type,
+                    self.args.input_file,
+                    metric=self.args.metric,
+                    n_trees=self.args.ntrees,
+                    port=self.args.port)
             server.start()
+
+        else:
+            raise UnknownType(self.args.type)
 
     def define_subcommands(self, subcommands):
         super(WordVecSpaceCommand, self).define_subcommands(subcommands)
@@ -95,23 +91,31 @@ class WordVecSpaceCommand(BaseScript):
         interact_cmd.set_defaults(func=self.interact)
         interact_cmd.add_argument('type',
                 help='wordvecspace feature mem or annoy')
-        interact_cmd.add_argument('wvargs',
-                help='wordvecspace arguments.\
-                        for mem <input_file=/home/user:dim=5>\
-                        for annoy <input_file=/home/user:dim=5:n_trees=1:metric=angular>\
-                        ntrees and metric are optional in annoy')
+        interact_cmd.add_argument('input_file',
+                help='wordvecspace input file')
+        interact_cmd.add_argument('-m', '--metric',
+                default=self.METRIC, type=str,
+                help='wordvecspace metric for type of distance calculation')
+        interact_cmd.add_argument('-n', '--ntrees',
+                default=self.N_TREES, type=int,
+                help='wordvecspace ntrees for number of tress for annoy')
 
         runserver_cmd = subcommands.add_parser('runserver',
                 help='WordVecSpace Service')
         runserver_cmd.set_defaults(func=self.runserver)
         runserver_cmd.add_argument('type',
                 help='wordvecspace feature mem or annoy')
-        runserver_cmd.add_argument('wvargs',
-                help='wordvecspace arguments.\
-                        for mem <input_file=/home/user:dim=5:port=8000>\
-                        for annoy <input_file=/home/user:dim=5:n_trees=1:metric=angular:port=8000>\
-                        ntrees and metric are optional in annoy\
-                        port is optional in both mem and annoy')
+        runserver_cmd.add_argument('input_file',
+                help='wordvecspace input file')
+        runserver_cmd.add_argument('-m', '--metric',
+                default=self.METRIC, type=str,
+                help='wordvecspace metric for type of distance calculation')
+        runserver_cmd.add_argument('-n', '--ntrees',
+                default=self.N_TREES, type=int,
+                help='wordvecspace ntrees for number of tress for annoy')
+        runserver_cmd.add_argument('-p', '--port',
+                default=self.DEFAULT_PORT, type=int,
+                help='port is to run wordvecspace in that port.')
 
 def main():
     WordVecSpaceCommand().start()

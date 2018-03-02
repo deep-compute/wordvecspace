@@ -9,22 +9,18 @@ from .fileformat import WordVecSpaceFile
 # export WORDVECSPACE_DATADIR=/path/to/data
 DATADIR_ENV_VAR = os.environ.get('WORDVECSPACE_DATADIR', ' ')
 
-DIM = 5
-
 class WordVecSpaceAnnoy(WordVecSpaceDisk):
 
     N_TREES = 1
     METRIC = 'angular'
     ANN_FILE = 'vectors.ann'
 
-    def __init__(self, input_file, dim, n_trees=N_TREES, metric=METRIC):
-        super(WordVecSpaceAnnoy, self).__init__(input_file, dim)
+    def __init__(self, input_file, n_trees=N_TREES, metric=METRIC):
+        super(WordVecSpaceAnnoy, self).__init__(input_file)
         self.ann = AnnoyIndex(self.dim, metric=metric)
         self.ann_file = os.path.join(os.path.dirname(input_file), self.ANN_FILE)
 
-        if not os.path.isfile(self.ann_file):
-            os.mknod(self.ann_file)
-            self._create_annoy_file(n_trees)
+        self._create_annoy_file(n_trees)
 
         self.ann.load(self.ann_file)
 
@@ -38,7 +34,7 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
 
     def get_distance(self, word_or_index1, word_or_index2, raise_exc=False):
         '''
-        >>> wa = WordVecSpaceAnnoy(DATADIR_ENV_VAR, DIM)
+        >>> wa = WordVecSpaceAnnoy(DATADIR_ENV_VAR)
         >>> print(wa.get_distance(250, 'india'))
         1.5029966831207275
         '''
@@ -55,7 +51,7 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
         get_distances(word, words)
         get_distances(words_x, words_y)
 
-        >>> wa = WordVecSpaceAnnoy(DATADIR_ENV_VAR, DIM)
+        >>> wa = WordVecSpaceAnnoy(DATADIR_ENV_VAR)
         >>> print(wa.get_distances("for", ["to", "for", "india"]))
         [[ 0.8729  0.      1.3828]]
         '''
@@ -93,22 +89,24 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
     DEFAULT_k = 512
     def get_nearest(self, words_or_indices, k=DEFAULT_k, combination=False, raise_exc=False):
         '''
-        >>> wa = WordVecSpaceAnnoy(DATADIR_ENV_VAR, DIM)
+        >>> wa = WordVecSpaceAnnoy(DATADIR_ENV_VAR)
         >>> print(wa.get_nearest(509, 10))
-        [[509, 486, 4343, 25578, 6049, 4137, 41883, 18617, 10172, 35704]]
+        [509, 486, 4343, 25578, 6049, 4137, 41883, 18617, 10172, 35704]
         '''
 
-        if not isinstance(words_or_indices, (tuple, list)):
-            words_or_indices = [words_or_indices]
+        if isinstance(words_or_indices, (tuple, list)):
+            res = []
+            for word in words_or_indices:
+                index = self.get_word_index(word)
 
-        res = []
-        for word in words_or_indices:
-            index = self.get_word_index(word)
+                if index:
+                    res.append(self.ann.get_nns_by_item(index, k)) # will find the k nearest neighbors
 
-            if index:
-                res.append(self.ann.get_nns_by_item(index, k)) # will find the k nearest neighbors
+            if combination and len(words_or_indices) > 1:
+                return list(set(res[0]).intersection(*res))
 
-        if len(words_or_indices) > 1 and combination:
-            return list(set(res[0]).intersection(*res))
+            return res
 
-        return res
+        index = self.get_word_index(words_or_indices)
+
+        return self.ann.get_nns_by_item(index, k)
