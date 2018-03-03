@@ -7,7 +7,7 @@ from .fileformat import WordVecSpaceFile
 from .base import WordVecSpace
 
 # export WORDVECSPACE_DATADIR=/path/to/data
-DATADIR_ENV_VAR = os.environ.get('WORDVECSPACE_DATADIR', ' ')
+DATAFILE_ENV_VAR = os.environ.get('WORDVECSPACE_DATAFILE', ' ')
 
 class WordVecSpaceDisk(WordVecSpace):
     def __init__(self, input_file):
@@ -21,10 +21,10 @@ class WordVecSpaceDisk(WordVecSpace):
 
     def does_word_exist(self, word):
         '''
-        >>> wa = WordVecSpaceDisk(DATADIR_ENV_VAR)
-        >>> print(wa.does_word_exist("india"))
+        >>> wv = WordVecSpaceDisk(DATAFILE_ENV_VAR)
+        >>> print(wv.does_word_exist("india"))
         True
-        >>> print(wa.does_word_exist("inidia"))
+        >>> print(wv.does_word_exist("inidia"))
         False
         '''
 
@@ -35,10 +35,10 @@ class WordVecSpaceDisk(WordVecSpace):
 
     def get_word_index(self, word, raise_exc=False):
         '''
-        >>> wa = WordVecSpaceDisk(DATADIR_ENV_VAR)
-        >>> print(wa.get_word_index("india"))
+        >>> wv = WordVecSpaceDisk(DATAFILE_ENV_VAR)
+        >>> print(wv.get_word_index("india"))
         509
-        >>> print(wa.get_word_index("inidia"))
+        >>> print(wv.get_word_index("inidia"))
         None
         '''
 
@@ -46,8 +46,8 @@ class WordVecSpaceDisk(WordVecSpace):
 
     def get_word_indices(self, words, raise_exc=False):
         '''
-        >>> wa = WordVecSpaceDisk(DATADIR_ENV_VAR)
-        >>> print(wa.get_word_indices(['the', 'deepcompute', 'india']))
+        >>> wv = WordVecSpaceDisk(DATAFILE_ENV_VAR)
+        >>> print(wv.get_word_indices(['the', 'deepcompute', 'india']))
         [1, None, 509]
         '''
 
@@ -62,10 +62,10 @@ class WordVecSpaceDisk(WordVecSpace):
 
     def get_word_at_index(self, index, raise_exc=False):
         '''
-        >>> wa = WordVecSpaceDisk(DATADIR_ENV_VAR)
-        >>> print(wa.get_word_at_index(509))
+        >>> wv = WordVecSpaceDisk(DATAFILE_ENV_VAR)
+        >>> print(wv.get_word_at_index(509))
         india
-        >>> print(wa.get_word_at_index(72000))
+        >>> print(wv.get_word_at_index(72000))
         None
         '''
 
@@ -73,10 +73,10 @@ class WordVecSpaceDisk(WordVecSpace):
 
     def get_word_at_indices(self, indices, raise_exc=False):
         '''
-        >>> wa = WordVecSpaceDisk(DATADIR_ENV_VAR)
-        >>> wa.get_word_at_indices([1,509,71190])
+        >>> wv = WordVecSpaceDisk(DATAFILE_ENV_VAR)
+        >>> wv.get_word_at_indices([1,509,71190])
         ['the', 'india', 'reka']
-        >>> wa.get_word_at_indices([1,509,71190,72000])
+        >>> wv.get_word_at_indices([1,509,71190,72000])
         ['the', 'india', 'reka', None]
         '''
 
@@ -91,8 +91,8 @@ class WordVecSpaceDisk(WordVecSpace):
 
     def get_vector_magnitude(self, word_or_index, raise_exc=False):
         '''
-        >>> wa = WordVecSpaceDisk(DATADIR_ENV_VAR)
-        >>> print(wa.get_vector_magnitude("hi"))
+        >>> wv = WordVecSpaceDisk(DATAFILE_ENV_VAR)
+        >>> print(wv.get_vector_magnitude("hi"))
         9.36555047958608
         '''
 
@@ -106,8 +106,8 @@ class WordVecSpaceDisk(WordVecSpace):
 
     def get_vector_magnitudes(self, words_or_indices, raise_exc=False):
         '''
-        >>> wa = WordVecSpaceDisk(DATADIR_ENV_VAR)
-        >>> print(wa.get_vector_magnitudes(["hi", "india"]))
+        >>> wv = WordVecSpaceDisk(DATAFILE_ENV_VAR)
+        >>> print(wv.get_vector_magnitudes(["hi", "india"]))
         [9.36555047958608, 10.141716028484925]
         '''
 
@@ -120,10 +120,10 @@ class WordVecSpaceDisk(WordVecSpace):
 
     def get_word_vector(self, word_or_index, normalized=False, raise_exc=False):
         '''
-        >>> wa = WordVecSpaceDisk(DATADIR_ENV_VAR)
-        >>> print(wa.get_word_vector('india'))
+        >>> wv = WordVecSpaceDisk(DATAFILE_ENV_VAR)
+        >>> print(wv.get_word_vector('india'))
         [-8.4037  4.2569  2.7932  0.6523 -2.4258]
-        >>> wa.get_word_vector('inidia')
+        >>> wv.get_word_vector('inidia')
         array([[ 0.,  0.,  0.,  0.,  0.]], dtype=float32)
         '''
         if normalized:
@@ -134,11 +134,11 @@ class WordVecSpaceDisk(WordVecSpace):
 
     def get_word_vectors(self, words_or_indices, normalized=False, raise_exc=False):
         '''
-        >>> wa = WordVecSpaceDisk(DATADIR_ENV_VAR)
-        >>> print(wa.get_word_vectors(["hi", "india"]))
+        >>> wv = WordVecSpaceDisk(DATAFILE_ENV_VAR)
+        >>> print(wv.get_word_vectors(["hi", "india"]))
         [[ 2.94   -3.3523 -6.4059 -2.1225 -4.7214]
          [-8.4037  4.2569  2.7932  0.6523 -2.4258]]
-        >>> print(wa.get_word_vectors(["hi", "inidia"]))
+        >>> print(wv.get_word_vectors(["hi", "inidia"]))
         [[ 2.94   -3.3523 -6.4059 -2.1225 -4.7214]
          [ 0.      0.      0.      0.      0.    ]]
         '''
@@ -155,10 +155,10 @@ class WordVecSpaceDisk(WordVecSpace):
 
     def get_word_occurrence(self, word_or_index, raise_exc=False):
         '''
-        >>> wa = WordVecSpaceDisk(DATADIR_ENV_VAR)
-        >>> print(wa.get_word_occurrence('india'))
+        >>> wv = WordVecSpaceDisk(DATAFILE_ENV_VAR)
+        >>> print(wv.get_word_occurrence('india'))
         3242
-        >>> print(wa.get_word_occurrence('inidia'))
+        >>> print(wv.get_word_occurrence('inidia'))
         None
         '''
 
@@ -166,10 +166,10 @@ class WordVecSpaceDisk(WordVecSpace):
 
     def get_word_occurrences(self, words_or_indices, raise_exc=False):
         '''
-        >>> wa = WordVecSpaceDisk(DATADIR_ENV_VAR)
-        >>> print(wa.get_word_occurrences(['hi', 'india', 'bye']))
+        >>> wv = WordVecSpaceDisk(DATAFILE_ENV_VAR)
+        >>> print(wv.get_word_occurrences(['hi', 'india', 'bye']))
         [210, 3242, 82]
-        >>> print(wa.get_word_occurrences(('hi', 'Deepcompute')))
+        >>> print(wv.get_word_occurrences(('hi', 'Deepcompute')))
         [210, None]
         '''
 

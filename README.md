@@ -101,13 +101,13 @@ $ wordvecspace convert /home/user/bindata /home/user/dc.wvspace
 ```
 
 #### Types
-`wordvecspace` can perform operations by loading data into RAM using `WordVecSpaceMem` or directly on the data which is on the disk using `WordVecSpaceAnnoy`
+`wordvecspace` module can perform operations by loading data into RAM using `WordVecSpaceMem` or directly on the data which is on the disk using `WordVecSpaceAnnoy`
 
 `WordVecSpaceMem` is a bruteforce algorithm which compares given word with all the words in the vector space
 
 `WordVecSpaceAnnoy` takes wvspace file as input and creates annoy indexes in another file. Using this file `annoy` gives approximate results quickly. For better understanding of `Annoy` please go through this [link](https://github.com/spotify/annoy)
 
-As we have seen how to import `WordVecSpaceMem` above, lets look at `WordVecSpaceAnnoy`
+As we have seen how to import `WordVecSpaceMem` above, let us look at `WordVecSpaceAnnoy`
 
 ##### Import
 ```python
@@ -143,7 +143,7 @@ wv = WordVecSpaceMem('/path/to/wvspacefile', metric="euclidean")
 # metric = type of distance calculation
 ```
 
-WordVecSpaceMem can also supports changing metric at the time of calculating distance.
+WordVecSpaceMem can also supports specifying metric at the time of calculating distance.
 
 Example:
 ```bash
@@ -430,13 +430,13 @@ WordVecSpaceAnnoy console (vectors=71291 dims=5)
 ## Running tests
 ```bash
 # Download the data files
-$ wget 'https://s3.amazonaws.com/deepcompute-public/data/wordvecspace/small_test_data.tgz'
+$ wget 'https://s3.amazonaws.com/deepcompute-public/data/wordvecspace/wvspacefile.tgz'
 
-# Extract downloaded small_test_data.tgz file
-$ tar xvzf small_test_data.tgz
+# Extract downloaded wvspacefile.tgz file
+$ tar xvzf wvspacefile.tgz
 
-# Export the path of data files to the environment variables
-$ export WORDVECSPACE_DATADIR="/home/user/small_test_data/dc.wvspace"
+# Export the path of data file to the environment variables
+$ export WORDVECSPACE_DATAFILE="/home/user/wvspacefile/dc.wvspace"
 
 # Run tests
 $ python3 setup.py test

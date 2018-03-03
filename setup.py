@@ -23,7 +23,7 @@ setup(
         'tables==3.4.2',
         'annoy==1.11.4',
         'cmph-cffi==0.3.0',
-        'scipy'
+        'scipy==1.0.0'
     ],
     extras_require={
         'cuda': ['pycuda==2017.1.1', 'scikit-cuda==0.5.1'],

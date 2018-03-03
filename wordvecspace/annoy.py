@@ -7,7 +7,7 @@ from .disk import WordVecSpaceDisk
 from .fileformat import WordVecSpaceFile
 
 # export WORDVECSPACE_DATADIR=/path/to/data
-DATADIR_ENV_VAR = os.environ.get('WORDVECSPACE_DATADIR', ' ')
+DATAFILE_ENV_VAR = os.environ.get('WORDVECSPACE_DATAFILE', ' ')
 
 class WordVecSpaceAnnoy(WordVecSpaceDisk):
 
@@ -34,8 +34,8 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
 
     def get_distance(self, word_or_index1, word_or_index2, raise_exc=False):
         '''
-        >>> wa = WordVecSpaceAnnoy(DATADIR_ENV_VAR)
-        >>> print(wa.get_distance(250, 'india'))
+        >>> wv = WordVecSpaceAnnoy(DATAFILE_ENV_VAR)
+        >>> print(wv.get_distance(250, 'india'))
         1.5029966831207275
         '''
 
@@ -51,8 +51,8 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
         get_distances(word, words)
         get_distances(words_x, words_y)
 
-        >>> wa = WordVecSpaceAnnoy(DATADIR_ENV_VAR)
-        >>> print(wa.get_distances("for", ["to", "for", "india"]))
+        >>> wv = WordVecSpaceAnnoy(DATAFILE_ENV_VAR)
+        >>> print(wv.get_distances("for", ["to", "for", "india"]))
         [[ 0.8729  0.      1.3828]]
         '''
 
@@ -89,8 +89,8 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
     DEFAULT_k = 512
     def get_nearest(self, words_or_indices, k=DEFAULT_k, combination=False, raise_exc=False):
         '''
-        >>> wa = WordVecSpaceAnnoy(DATADIR_ENV_VAR)
-        >>> print(wa.get_nearest(509, 10))
+        >>> wv = WordVecSpaceAnnoy(DATAFILE_ENV_VAR)
+        >>> print(wv.get_nearest(509, 10))
         [509, 486, 4343, 25578, 6049, 4137, 41883, 18617, 10172, 35704]
         '''
 

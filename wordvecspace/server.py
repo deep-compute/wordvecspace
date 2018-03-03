@@ -205,10 +205,7 @@ class APIFunctions(object):
         return neg
 
 class WordVecSpaceServer(object):
-    N_TREES = 1
-    METRIC = 'angular'
-
-    def __init__(self, _type, input_file, port, n_trees=N_TREES, metric=METRIC, log=Logger):
+    def __init__(self, _type, input_file, port, n_trees, metric, log=Logger):
         self._type = _type
         self.input_file = input_file
         self.port = port

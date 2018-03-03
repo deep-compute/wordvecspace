@@ -13,7 +13,7 @@ from .base import WordVecSpace
 np.set_printoptions(precision=4)
 
 # $export WORDVECSPACEMEM_DATADIR=/path/to/data/
-DATADIR_ENV_VAR = os.environ.get('WORDVECSPACE_DATADIR', ' ')
+DATAFILE_ENV_VAR = os.environ.get('WORDVECSPACE_DATAFILE', ' ')
 
 # export blas path if your system has different path for blas
 # $export WORDVECSPACE_BLAS_FPATH=/path/to/blas
@@ -74,7 +74,7 @@ class WordVecSpaceMem(WordVecSpace):
 
     def __init__(self, input_file, metric=METRIC):
         '''
-        >>> _f = WordVecSpaceFile(DATADIR_ENV_VAR, 'r')
+        >>> _f = WordVecSpaceFile(DATAFILE_ENV_VAR, 'r')
         >>> nvecs = len(_f)
         >>> print(nvecs)
         71291
@@ -181,7 +181,7 @@ class WordVecSpaceMem(WordVecSpace):
 
     def does_word_exist(self, word):
         '''
-        >>> wv = WordVecSpaceMem(DATADIR_ENV_VAR)
+        >>> wv = WordVecSpaceMem(DATAFILE_ENV_VAR)
         >>> print(wv.does_word_exist("india"))
         True
         >>> print(wv.does_word_exist("inidia"))
@@ -192,7 +192,7 @@ class WordVecSpaceMem(WordVecSpace):
 
     def get_word_index(self, word, raise_exc=False):
         '''
-        >>> wv = WordVecSpaceMem(DATADIR_ENV_VAR)
+        >>> wv = WordVecSpaceMem(DATAFILE_ENV_VAR)
         >>> print(wv.get_word_index("india"))
         509
         >>> print(wv.get_word_index("inidia"))
@@ -216,7 +216,7 @@ class WordVecSpaceMem(WordVecSpace):
 
     def get_word_indices(self, words, raise_exc=False):
         '''
-        >>> wv = WordVecSpaceMem(DATADIR_ENV_VAR)
+        >>> wv = WordVecSpaceMem(DATAFILE_ENV_VAR)
         >>> print(wv.get_word_indices(['the', 'deepcompute', 'india']))
         [1, None, 509]
         '''
@@ -232,7 +232,7 @@ class WordVecSpaceMem(WordVecSpace):
 
     def get_word_at_index(self, index, raise_exc=False):
         '''
-        >>> wv = WordVecSpaceMem(DATADIR_ENV_VAR)
+        >>> wv = WordVecSpaceMem(DATAFILE_ENV_VAR)
         >>> print(wv.get_word_at_index(509))
         india
         >>> print(wv.get_word_at_index(72000))
@@ -252,7 +252,7 @@ class WordVecSpaceMem(WordVecSpace):
 
     def get_word_at_indices(self, indices, raise_exc=False):
         '''
-        >>> wv = WordVecSpaceMem(DATADIR_ENV_VAR)
+        >>> wv = WordVecSpaceMem(DATAFILE_ENV_VAR)
         >>> print(wv.get_word_at_indices([1,509,71190,72000]))
         ['the', 'india', 'reka', None]
         '''
@@ -268,7 +268,7 @@ class WordVecSpaceMem(WordVecSpace):
 
     def get_vector_magnitude(self, word_or_index, raise_exc=False):
         '''
-        >>> wv = WordVecSpaceMem(DATADIR_ENV_VAR)
+        >>> wv = WordVecSpaceMem(DATAFILE_ENV_VAR)
         >>> print(wv.get_vector_magnitude("india"))
         10.1417
         '''
@@ -279,7 +279,7 @@ class WordVecSpaceMem(WordVecSpace):
 
     def get_vector_magnitudes(self, words_or_indices, raise_exc=False):
         '''
-       >>> wv = WordVecSpaceMem(DATADIR_ENV_VAR)
+       >>> wv = WordVecSpaceMem(DATAFILE_ENV_VAR)
        >>> print(wv.get_vector_magnitudes(["hi", "india"]))
        [9.36555, 10.141716]
        >>> print(wv.get_vector_magnitudes(["inidia", "india"]))
@@ -295,7 +295,7 @@ class WordVecSpaceMem(WordVecSpace):
 
     def get_word_vector(self, word_or_index, normalized=False, raise_exc=False):
         '''
-        >>> wv = WordVecSpaceMem(DATADIR_ENV_VAR)
+        >>> wv = WordVecSpaceMem(DATAFILE_ENV_VAR)
         >>> print(wv.get_word_vector('india'))
         [-8.4037  4.2569  2.7932  0.6523 -2.4258]
         >>> print(wv.get_word_vector('inidia', normalized=True))
@@ -319,7 +319,7 @@ class WordVecSpaceMem(WordVecSpace):
 
     def get_word_vectors(self, words_or_indices, normalized=False, raise_exc=False):
         '''
-        >>> wv = WordVecSpaceMem(DATADIR_ENV_VAR)
+        >>> wv = WordVecSpaceMem(DATAFILE_ENV_VAR)
         >>> print(wv.get_word_vectors(["hi", "india"]))
         [[ 2.94   -3.3523 -6.4059 -2.1225 -4.7214]
          [-8.4037  4.2569  2.7932  0.6523 -2.4258]]
@@ -340,7 +340,7 @@ class WordVecSpaceMem(WordVecSpace):
 
     def get_word_occurrence(self, word_or_index, raise_exc=False):
         '''
-        >>> wv = WordVecSpaceMem(DATADIR_ENV_VAR)
+        >>> wv = WordVecSpaceMem(DATAFILE_ENV_VAR)
         >>> print(wv.get_word_occurrence("india"))
         3242
         >>> print(wv.get_word_occurrence("inidia"))
@@ -352,7 +352,7 @@ class WordVecSpaceMem(WordVecSpace):
 
     def get_word_occurrences(self, words_or_indices, raise_exc=False):
         '''
-        >>> wv = WordVecSpaceMem(DATADIR_ENV_VAR)
+        >>> wv = WordVecSpaceMem(DATAFILE_ENV_VAR)
         >>> print(wv.get_word_occurrences(['the', 'india', 'Deepcompute']))
         [1061396, 3242, None]
         >>> print(wv.get_word_occurrences(['the', 'india', 'pakistan' ]))
@@ -370,7 +370,7 @@ class WordVecSpaceMem(WordVecSpace):
 
     def get_distance(self, word_or_index1, word_or_index2, metric=None, raise_exc=False):
         '''
-        >>> wv = WordVecSpaceMem(DATADIR_ENV_VAR)
+        >>> wv = WordVecSpaceMem(DATAFILE_ENV_VAR)
         >>> print(wv.get_distance("india", "usa"))
         0.325127840042
         >>> print(wv.get_distance("india", "usa", metric='euclidean'))
@@ -391,7 +391,7 @@ class WordVecSpaceMem(WordVecSpace):
 
     def get_distances(self, row_words_or_indices, col_words_or_indices=None, metric=None, raise_exc=False):
         '''
-        >>> wv = WordVecSpaceMem(DATADIR_ENV_VAR)
+        >>> wv = WordVecSpaceMem(DATAFILE_ENV_VAR)
         >>> res = wv.get_distances("for", ["to", "for", "india"])
         >>> print(res)
         [[ 0.381   0.      0.9561]]
@@ -449,7 +449,7 @@ class WordVecSpaceMem(WordVecSpace):
     DEFAULT_K = 512
     def get_nearest(self, words_or_indices, k=DEFAULT_K, combination=False, metric=None, raise_exc=False):
         '''
-        >>> wv = WordVecSpaceMem(DATADIR_ENV_VAR)
+        >>> wv = WordVecSpaceMem(DATAFILE_ENV_VAR)
         >>> print(wv.get_nearest("india", 20))
         [509, 486, 523, 4343, 14208, 13942, 42424, 25578, 6212, 2475, 3560, 13508, 20919, 3389, 4484, 19995, 8776, 7012, 12191, 16619]
         >>> print(wv.get_nearest("india", 20, metric='euclidean'))

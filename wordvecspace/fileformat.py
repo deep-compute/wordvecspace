@@ -7,7 +7,7 @@ import tables
 import cmph
 
 # $export WVSPACEFILE_DATADIR=/path/to/data/
-DATADIR_ENV_VAR = os.environ.get('WORDVECSPACE_DATADIR', '')
+DATAFILE_ENV_VAR = os.environ.get('WORDVECSPACE_DATAFILE', '')
 
 DIM = 5
 
@@ -91,8 +91,8 @@ class WordVecSpaceFile(object):
 
     def __len__(self):
         '''
-        >>> ws = WordVecSpaceFile(DATADIR_ENV_VAR, DIM, 'r')
-        >>> len(ws)
+        >>> wv = WordVecSpaceFile(DATAFILE_ENV_VAR, DIM, 'r')
+        >>> len(wv)
         71291
         '''
 
@@ -126,14 +126,14 @@ class WordVecSpaceFile(object):
         '''
         When we have vectors loaded into the hdf5 file we can retrive
         word, vector, occurrence together or individually based on index
-        >>> ws = WordVecSpaceFile(DATADIR_ENV_VAR, DIM , 'r')
-        >>> ws.get(1)
+        >>> wv = WordVecSpaceFile(DATAFILE_ENV_VAR, DIM , 'r')
+        >>> wv.get(1)
         {'vector': array([-0.8461,  0.8698,  1.0971, -0.8056,  0.7051], dtype=float32), 'word': 'the', 'occurrence': 1061396}
-        >>> ws.get(1, ws.VECTOR)
+        >>> wv.get(1, wv.VECTOR)
         array([-0.8461,  0.8698,  1.0971, -0.8056,  0.7051], dtype=float32)
-        >>> ws.get(1, ws.OCCURRENCE)
+        >>> wv.get(1, wv.OCCURRENCE)
         1061396
-        >>> ws.get(1, ws.WORD)
+        >>> wv.get(1, wv.WORD)
         'the'
         '''
 
@@ -169,8 +169,8 @@ class WordVecSpaceFile(object):
 
     def get_word_vector(self, word, raise_exc=False):
         '''
-        >>> ws = WordVecSpaceFile(DATADIR_ENV_VAR, DIM , 'r')
-        >>> ws.get_word_vector('the')
+        >>> wv = WordVecSpaceFile(DATAFILE_ENV_VAR, DIM , 'r')
+        >>> wv.get_word_vector('the')
         array([-0.8461,  0.8698,  1.0971, -0.8056,  0.7051], dtype=float32)
         '''
 
@@ -185,8 +185,8 @@ class WordVecSpaceFile(object):
 
     def get_word_occurrence(self, word, raise_exc=False):
         '''
-        >>> ws = WordVecSpaceFile(DATADIR_ENV_VAR, DIM , 'r')
-        >>> ws.get_word_occurrence('the')
+        >>> wv = WordVecSpaceFile(DATAFILE_ENV_VAR, DIM , 'r')
+        >>> wv.get_word_occurrence('the')
         1061396
         '''
 
@@ -200,9 +200,9 @@ class WordVecSpaceFile(object):
 
     def get_word_index(self, word, raise_exc=False):
         '''
-        >>> ws = WordVecSpaceFile(DATADIR_ENV_VAR, DIM, 'r')
+        >>> wv = WordVecSpaceFile(DATAFILE_ENV_VAR, DIM, 'r')
         >>> if (sys.version_info > (3, 0)):
-        ...    ws.get_word_index('the')
+        ...    wv.get_word_index('the')
         1
         '''
         if isinstance(word, int):
@@ -225,14 +225,14 @@ class WordVecSpaceFile(object):
         '''
         This function returns vectors, occurrences, words
         based on the type in the range of indices
-        >>> ws = WordVecSpaceFile(DATADIR_ENV_VAR, DIM, 'r')
-        >>> ws.getmany(0, 2)
+        >>> wv = WordVecSpaceFile(DATAFILE_ENV_VAR, DIM, 'r')
+        >>> wv.getmany(0, 2)
         array([[ 0.0801,  0.0884, -0.0766, -0.0656,  0.0273],
                [-0.8461,  0.8698,  1.0971, -0.8056,  0.7051]], dtype=float32)
 
-        >>> ws.getmany(0, 2, ws.WORD)
+        >>> wv.getmany(0, 2, wv.WORD)
         ['</s>', 'the']
-        >>> ws.getmany(0, 2, ws.OCCURRENCE)
+        >>> wv.getmany(0, 2, wv.OCCURRENCE)
         array([      0, 1061396], dtype=uint64)
         '''
 

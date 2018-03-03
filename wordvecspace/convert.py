@@ -63,7 +63,6 @@ class GW2VectoWordVecSpaceFile(object):
     def start(self):
         inp_vec_f = open(os.path.join(self.in_dir, 'vectors.bin'), 'rb')
         inp_vecs = GWVecBinReader(inp_vec_f)
-        import pdb; pdb.set_trace()
 
         vocab_file = open(os.path.join(self.in_dir, 'vocab.txt'), 'r')
 
