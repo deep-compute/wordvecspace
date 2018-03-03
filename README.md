@@ -29,8 +29,8 @@ word vector space data. Here are two ways to get that.
 #### Download pre-computed sample data
 
 ```bash
-$ wget https://s3.amazonaws.com/deepcompute-public/data/wordvecspace/small_test_data.tgz
-$ tar zxvf small_test_data.tgz
+$ wget https://s3.amazonaws.com/deepcompute-public/data/wordvecspace/wvspacefile.tgz
+$ tar zxvf wvspacefile.tgz
 ```
 
 > NOTE: We got this data by downloading the `text8` corpus
