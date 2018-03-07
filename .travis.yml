@@ -16,15 +16,6 @@ deploy:
   skip_cleanup: true
   api-key:
     secure: LmVvlW+FdYNIDlinjJ4sieONrcx1jaw18J7/mpHBD9ppIWZ+TB6H/iNqkqkh4WvULZttJrTHRYE6rQHXww7KK2UMrjVNE/TVUPaLFDeRRFvLDinAbqJkn+QJia0TuRa/26Bg9cDcvNYTghy7s37xpK2bJTEMF/eCM9b9RHYXilESYy8Z4l8IkFn5vnaDDfT5iV8xjuuOE4lsf4KC3L0xXIkYnKC/LbDVDj3B9h52TpsteL6cZtn/ExAThor5SrVymW7oMR1qrPQv8btNAdxymqJvEbjaP5RUuX7ehihev0Yge47A2X9gvxDRv+a6wM0HOvT4aGsMwCWo++fb0taWH7HUXFxSvkzKhsl74kDMmnE0WarcI/8L/3Q/zRhW1a2vAtj3O0FDHtzS/OK/k3TDk6Fh/LOvk2mTuGD3L34YxJrXxDxnt4tK2ubde8cGeA7pI5jRLNTNQXUip6Dxhr/5ZnMmG2nHI6ujjmDnucE+CHBtUmS1wjBn6ootE4pdoyti0aaA9OrVoGrf39pK7FAG38KJghqn8I3YCLoeapWjI4/DI0WIfq2Vl+v6yQar3Dn9lBLpWFLrjUmZnAx2F1e0P2y0VUg9hl0bINzIIrm2mHw4Zsl2GlMVSR033cwvcbdyeNxKMAfSV3EZBDpNuI6nlkkUZG1O72N/WV+kFRtSdQA=
-  file:
-    - README.md
-    - setup.py
-    - wordvecspace/__init__.py
-    - wordvecspace/wordvecspace.py
-    - test.py
-    - wordvecspace/command.py
-    - wordvecspace/convert.py
-    - wordvecspace/cuda.py
   name: wordvecspace-0.5.1
   tag_name: 0.5.1
   on:
