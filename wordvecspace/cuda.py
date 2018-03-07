@@ -1,11 +1,17 @@
-from wordvecspace import WordVecSpace
-
 import numpy as np
 import pycuda.autoinit
 from pycuda.gpuarray import GPUArray, dot, to_gpu
 import skcuda.cublas as cublas
 
-class CudaWordVecSpace(WordVecSpace):
+from .mem import WordVecSpaceMem
+
+class CudaWordVecSpaceMem(WordVecSpaceMem):
+
+    def __init__(self):
+        super(CudaWordVecSpace, self).__init__()
+
+        vectors_gpu = to_gpu(self.vectors)
+        self.vectors = vectors_gpu
 
     def _make_array(self, shape, dtype):
         return GPUArray(shape, dtype)
@@ -106,14 +112,8 @@ class CudaWordVecSpace(WordVecSpace):
 
         return mat_out
 
-    def load(self):
-        super(CudaWordVecSpace, self).load()
-
-        vectors_gpu = to_gpu(self.vectors)
-        self.vectors = vectors_gpu
-
     def get_distances(self, row_words, col_words=None, raise_exc=False):
         dvec = super(CudaWordVecSpace, self).get_distances(row_words, col_words, raise_exc)
         return dvec.get()
 
-WordVecSpace = CudaWordVecSpace
+WordVecSpaceMem = CudaWordVecSpaceMem
