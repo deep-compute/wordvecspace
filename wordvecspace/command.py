@@ -5,7 +5,6 @@ from basescript import BaseScript
 from .convert import GW2VectoWordVecSpaceFile
 from .mem import WordVecSpaceMem
 from .annoy import WordVecSpaceAnnoy
-from .server import WordVecSpaceServer
 from .exception import UnknownType
 
 class WordVecSpaceCommand(BaseScript):
@@ -60,6 +59,14 @@ class WordVecSpaceCommand(BaseScript):
             raise UnknownType(self.args.type)
 
     def runserver(self):
+    # Installing service feature is optional.
+    # Service feature depends on kwikapi.
+
+    # We imported here because it should not distrub
+    # interact fuctionality even though kwikapi is not installed.
+
+        from .server import WordVecSpaceServer
+
         if self.args.type == 'mem':
             server = WordVecSpaceServer(self.args.type,
                     self.args.input_file,

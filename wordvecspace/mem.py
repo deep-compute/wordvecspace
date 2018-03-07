@@ -384,9 +384,8 @@ class WordVecSpaceMem(WordVecSpace):
         >>> check_equal(res, np.array([[  0.381, 0.,  0.9561]], dtype=np.float32), decimal=4)
         >>> res = wv.get_distances("for", ["to", "for", "inidia"])
         >>> check_equal(res, np.array([[  0.381, 0.,  1.]], dtype=np.float32), decimal=4)
-        >>> print(wv.get_distances(["india", "for"], ["to", "for", "usa"]))
-        [[ 1.0685  0.9561  0.3251]
-         [ 0.381   0.      1.4781]]
+        >>> res = wv.get_distances(["india", "for"], ["to", "for", "usa"])
+        >>> check_equal(res, np.array([[ 1.0685,  0.9561,  0.3251], [ 0.381,   0.,      1.4781]], dtype=np.float32), decimal=1)
         >>> print(wv.get_distances(["india", "usa"]))
         [[ 1.3853  0.4129  0.3149 ...,  1.1231  1.4595  0.7912]
          [ 1.3742  0.9549  1.0354 ...,  0.5556  1.0847  1.0832]]
