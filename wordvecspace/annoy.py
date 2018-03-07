@@ -6,7 +6,8 @@ from annoy import AnnoyIndex
 from .disk import WordVecSpaceDisk
 from .fileformat import WordVecSpaceFile
 
-# export WORDVECSPACE_DATADIR=/path/to/data
+# export data file path for test cases
+# export WORDVECSPACE_DATAFILE=/path/to/data
 DATAFILE_ENV_VAR = os.environ.get('WORDVECSPACE_DATAFILE', ' ')
 
 class WordVecSpaceAnnoy(WordVecSpaceDisk):
@@ -15,10 +16,13 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
     METRIC = 'angular'
     ANN_FILE = 'vectors.ann'
 
-    def __init__(self, input_file, n_trees=N_TREES, metric=METRIC):
+    def __init__(self, input_file, n_trees=N_TREES, metric=METRIC, index_fpath=None):
         super(WordVecSpaceAnnoy, self).__init__(input_file)
         self.ann = AnnoyIndex(self.dim, metric=metric)
+
         self.ann_file = os.path.join(os.path.dirname(input_file), self.ANN_FILE)
+        if index_fpath:
+            self.ann_file = os.path.join(index_fpath, self.ANN_FILE)
 
         self._create_annoy_file(n_trees)
 
@@ -56,29 +60,33 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
         [[ 0.8729  0.      1.3828]]
         '''
 
-        if not isinstance(row_words_or_indices, (list, tuple)):
-            row_words_or_indices = [row_words_or_indices]
+        r = row_words_or_indices
+        c = col_words_or_indices
 
-        if col_words_or_indices:
-            if not isinstance(col_words_or_indices, (list, tuple)):
-                col_words_indices = [col_words_indices]
+        if not isinstance(r, (list, tuple)):
+            r = [r]
 
-            mat = self._make_array(shape=((len(row_words_or_indices)), len(col_words_or_indices)), dtype=np.float32)
+        if c:
+            if not isinstance(c, (list, tuple)):
+                c = [c]
 
-            for i, row_word in enumerate(row_words_or_indices):
+            mat = self._make_array(shape=((len(r)), len(c)), dtype=np.float32)
+
+            for i, row_word in enumerate(r):
                 dist = []
-                for col_word in col_words_or_indices:
+                for col_word in c:
                     dist.append(self.get_distance(row_word, col_word))
 
                 mat[i] = np.asarray(dist, dtype=np.float32)
 
         else:
-            mat = self._make_array(shape=((len(row_words_or_indices)), self.nvecs), dtype=np.float32)
+            mat = self._make_array(shape=((len(r)), self.nvecs), dtype=np.float32)
             dist = {}
 
-            for i, row_word in enumerate(row_words_or_indices):
+            for i, row_word in enumerate(r):
                 index = self.get_word_index(row_word, raise_exc=raise_exc)
                 key, val = self.ann.get_nns_by_item(index, self.nvecs, include_distances=True)
+
                 for k, v in zip(key, val):
                     dist[k] = v
 
@@ -86,8 +94,8 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
 
         return mat
 
-    DEFAULT_k = 512
-    def get_nearest(self, words_or_indices, k=DEFAULT_k, combination=False, raise_exc=False):
+    DEFAULT_K = 512
+    def get_nearest(self, words_or_indices, k=DEFAULT_K, combination=False, raise_exc=False):
         '''
         >>> wv = WordVecSpaceAnnoy(DATAFILE_ENV_VAR)
         >>> print(wv.get_nearest(509, 10))
@@ -97,16 +105,17 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
         if isinstance(words_or_indices, (tuple, list)):
             res = []
             for word in words_or_indices:
-                index = self.get_word_index(word)
+                index = self.get_word_index(word, raise_exc=raise_exc)
 
                 if index:
                     res.append(self.ann.get_nns_by_item(index, k)) # will find the k nearest neighbors
 
+            # will find common nearest neighbors among given words
             if combination and len(words_or_indices) > 1:
                 return list(set(res[0]).intersection(*res))
 
             return res
 
-        index = self.get_word_index(words_or_indices)
+        index = self.get_word_index(words_or_indices, raise_exc=raise_exc)
 
         return self.ann.get_nns_by_item(index, k)

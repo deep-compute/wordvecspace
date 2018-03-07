@@ -1,9 +1,9 @@
-from .mem import WordVecSpaceMem
-
 import numpy as np
 import pycuda.autoinit
 from pycuda.gpuarray import GPUArray, dot, to_gpu
 import skcuda.cublas as cublas
+
+from .mem import WordVecSpaceMem
 
 class CudaWordVecSpaceMem(WordVecSpaceMem):
 

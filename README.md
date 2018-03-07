@@ -1,7 +1,7 @@
 # WordVecSpace
 A high performance pure python module that helps in loading and performing operations on word vector spaces created using Google's Word2vec tool.
 
-This module has ability to load data into memory using `WordVecSpaceMem` or it can also support performing operations on the data which is on the disk using `WordVecSpaceAnnoy`.
+This module has ability to load data into memory using `WordVecSpaceMem` or it can also supports performing operations on the data which is on the disk using `WordVecSpaceAnnoy`.
 
 ## Installation
 > Prerequisites: Python3.5
@@ -29,8 +29,8 @@ word vector space data. Here are two ways to get that.
 #### Download pre-computed sample data
 
 ```bash
-$ wget https://s3.amazonaws.com/deepcompute-public/data/wordvecspace/wvspacefile.tgz
-$ tar zxvf wvspacefile.tgz
+$ wget https://s3.amazonaws.com/deepcompute-public-data/wordvecspace/small_test_data.tgz
+$ tar zxvf small_test_data.tgz
 ```
 
 > NOTE: We got this data by downloading the `text8` corpus
@@ -39,13 +39,13 @@ $ tar zxvf wvspacefile.tgz
 > the instructions in the following section.
 
 #### Computing your own data
-    
+
 You can compute a word vector space on an arbitrary text corpus
 by using Google's word2vec tool. Here is an example on how to do
 that for the sample `text8` corpus.
 
 ```bash
-$ git clone https://github.com/tmikolov/word2vec.git 
+$ git clone https://github.com/tmikolov/word2vec.git
 
 # 1. Navigate to the folder word2vec
 # 2. open demo-word.sh for editing
@@ -89,7 +89,7 @@ $ wordvecspace convert /home/user/bindata /home/user/dc.wvspace
 
 ##### Load data
 ```python
->>> wv = WordVecSpaceMem('/path/to/wvspacefile')
+>>> wv = WordVecSpaceMem('/home/user/dc.wvspace')
 ```
 
 ##### Make get_nearest call
@@ -105,7 +105,7 @@ $ wordvecspace convert /home/user/bindata /home/user/dc.wvspace
 
 `WordVecSpaceMem` is a bruteforce algorithm which compares given word with all the words in the vector space
 
-`WordVecSpaceAnnoy` takes wvspace file as input and creates annoy indexes in another file. Using this file `annoy` gives approximate results quickly. For better understanding of `Annoy` please go through this [link](https://github.com/spotify/annoy)
+`WordVecSpaceAnnoy` takes wvspace file as input and creates annoy indexes in another file (index file). Using this file `annoy` gives approximate results quickly. For better understanding of `Annoy` please go through this [link](https://github.com/spotify/annoy)
 
 As we have seen how to import `WordVecSpaceMem` above, let us look at `WordVecSpaceAnnoy`
 
@@ -116,9 +116,12 @@ As we have seen how to import `WordVecSpaceMem` above, let us look at `WordVecSp
 
 ##### Load data
 ```python
-wv = WordVecSpaceAnnoy('/path/to/wvspacefile', n_trees)
+wv = WordVecSpaceAnnoy('/home/user/dc.wvspace', n_trees, index_fpath)
 
 # n_trees = number of trees(More trees gives a higher precision when querying for get_nearest)
+# index_fpath = path for annoy index file
+
+# n_trees and index_fpath are optional. If those are not given then WordVecSpaceAnnoy uses `1` for n_trees and `/home/user/` (dc.wvspace file directory) directory for index_fpath.
 ```
 
 ##### Make get_nearest call
@@ -180,7 +183,7 @@ Traceback (most recent call last):
   File "<console>", line 1, in <module>
   File "/usr/local/lib/python3.6/dist-packages/wordvecspace/mem.py", line 196, in get_word_index
     raise UnknownWord(word)
-wordvecspace.mem.UnknownWord: "inidia"
+wordvecspace.exception.UnknownWord: "inidia"
 ```
 
 ##### Get the indices of words
@@ -197,10 +200,10 @@ Traceback (most recent call last):
     index = self.get_word_index(word, raise_exc=raise_exc)
   File "/usr/local/lib/python3.6/dist-packages/wordvecspace/mem.py", line 196, in get_word_index
     raise UnknownWord(word)
-wordvecspace.mem.UnknownWord: "deepcompute"
+wordvecspace.exception.UnknownWord: "deepcompute"
 ```
 
-##### Get Word at Index 
+##### Get Word at Index
 ```python
 # Get word at Index 509
 >>> print(wv.get_word_at_index(509))
@@ -213,7 +216,7 @@ india
 ['the', 'india', 'reka', None]
 ```
 
-##### Get occurence of the word
+##### Get occurrence of the word
 ```python
 # Get occurrences of the word "india"
 >>> print(wv.get_word_occurrence("india"))
@@ -224,7 +227,7 @@ india
 None
 ```
 
-##### Get occurrence of the words 
+##### Get occurrence of the words
 ```python
 # Get occurrence of the words 'the', 'india' and 'Deepcompute'
 >>> print(wv.get_word_occurrences(["the", "india", "Deepcompute"]))
@@ -245,7 +248,7 @@ None
 [  8.7948  10.303 ]
 ```
 
-##### Get vector for given word 
+##### Get vector for given word
 ```python
 # Get the word vector for a word india
 >>> print(wv.get_word_vector("india"))
@@ -265,7 +268,7 @@ Traceback (most recent call last):
     index = self.get_word_index(word, raise_exc)
   File "/usr/local/lib/python3.6/dist-packages/wordvecspace/mem.py", line 196, in get_word_index
     raise UnknownWord(word)
-wordvecspace.mem.UnknownWord: "inidia"
+wordvecspace.exception.UnknownWord: "inidia"
 
 # If you don't want to get exception when word is not there, then you can simply discard raise_exc=True
 >>> print(wv.get_word_vector('inidia'))
@@ -282,7 +285,7 @@ wordvecspace.mem.UnknownWord: "inidia"
  [ 0.      0.      0.      0.      0.    ]]
 ```
 
-##### Get distance between two words 
+##### Get distance between two words
 ```python
 # Get distance between "india", "usa"
 >>> print(wv.get_distance("india", "usa"))
@@ -294,7 +297,7 @@ wordvecspace.mem.UnknownWord: "inidia"
 
 # Get the euclidean distance between 250, "india" for WordvecSpaceMem
 >>> print(wv.get_distance(250, "india", metric='euclidean'))
-1.5029966831207275
+12.04961109161377
 ```
 
 ##### Get distance between list of words
@@ -319,24 +322,24 @@ wordvecspace.mem.UnknownWord: "inidia"
 
 # For WordVecSpaceMem
 >>> print(wv.get_distances(["andhra"], metric='euclidean'))
-[[ 1.601   1.108   0.7739 ...,  1.4103  1.5646  1.1079]]
+[[ 9.0035  8.3985  7.1658 ...,  9.2236  9.6078  8.6349]]
 ```
 
 ##### Get nearest
 ```python
-# Get nearest neighbours for given word or index
+# Get nearest for given word or index
 >>> print(wv.get_nearest("india", 20))
 [509, 486, 523, 4343, 14208, 13942, 42424, 25578, 6212, 2475, 3560, 13508, 20919, 3389, 4484, 19995, 8776, 7012, 12191, 16619]
 
-# Get nearest neighbours for given words or indices
+# Get nearest for given words or indices
 >>> print(wv.get_nearest(["ram", "india"], 5))
 [[3844, 38851, 25381, 10830, 17049], [509, 486, 523, 4343, 14208]]
 
-# Get nearest neighbours using euclidean distance for WordVecSpaceMem
+# Get nearest using euclidean distance for WordVecSpaceMem
 >>> print(wv.get_nearest(["ram", "india"], 5, metric='euclidean'))
-[[3844, 38851, 25381, 10830, 17049], [509, 486, 523, 4343, 14208]]
+[[3844, 25381, 27802, 17049, 38851], [509, 486, 14208, 523, 13942]]
 
-# Get common nearest of multiple words (combination of words)
+# Get common nearest neighbors among given words
 >>> print(wv.get_nearest(['india', 'bosnia'], 10, combination=True))
 [14208, 486, 523, 4343, 42424, 509]
 ```
@@ -345,13 +348,13 @@ wordvecspace.mem.UnknownWord: "inidia"
 
 ```bash
 # Run wordvecspace as a service (which continuously listens on some port for API requests)
-$ wordvecspace runserver <type> <input_file> --metric <metric> --ntress <ntrees> --port <port>
+$ wordvecspace runserver <type> <input_file> --metric <metric> --port <port> --eargs <eargs>
 
 # <type> is for specifying wordvecspace functionality (eg: mem or annoy).
 # <input_file> is for wordvecspace file
 # <metric> is to specify type for distance calculation
-# <ntrees> is the number of trees for annoy
 # <port> is to run wordvecspace in that port
+# <eargs> is for specifying extra arguments for annoy
 ```
 
 Example:
@@ -361,7 +364,11 @@ Example:
 $ wordvecspace runserver mem /home/user/dc.wvspace --metric angular --port 8000
 
 # For annoy
-$ wordvecspace runserver annoy /home/user/dc.wvspace --metric euclidean --ntrees 2 --port 8000
+$ wordvecspace runserver annoy /home/user/dc.wvspace --metric euclidean --port 8000 --eargs n_trees=1:index_fpath=/tmp
+
+# Extra arguments for annoy are n_trees and index_fpath
+#   - n_trees is the number of trees for annoy
+#   - index_fpath is the directory for annoy index file
 
 # Make API request
 $ curl "http://localhost:8000/api/v1/does_word_exist?word=india"
@@ -408,12 +415,12 @@ $ http://localhost:8000/api/v1/get_nearest?words_or_indices=india&k=100&metric=e
 ```bash
 # wordvecspace provides command to directly interact with it
 
-$ wordvecspace interact <type> <input_file> --metric <metric> --ntress <ntrees>
+$ wordvecspace interact <type> <input_file> --metric <metric> --eargs <eargs>
 
 # <type> is for specifying wordvecspace functionality (eg: mem or annoy).
 # <input_file> is for wordvecspace file
 # <metric> is to specify type for distance calculation
-# <ntrees> is the number of trees for annoy
+# <eargs> is for specifying extra arguments for annoy
 ```
 
 Example:
@@ -421,22 +428,26 @@ Example:
 # For mem
 $ wordvecspace interact mem /home/user/dc.wvspace --metric euclidean
 
-$ wordvecspace interact annoy /home/user/dc.wvspace --metric angular --ntrees 1
+$ wordvecspace interact annoy /home/user/dc.wvspace --metric angular --eargs n_trees=1:index_fpath=/tmp
 WordVecSpaceAnnoy console (vectors=71291 dims=5)
->>> wv.get_nearest('india')
-[509, 486, 523, 4343, 14208, 13942, 42424, 25578, 6212, 2475, 3560, 13508, 20919, 3389, 4484, 19995, 8776, 7012, 12191, 16619]
+>>> wv.get_nearest('india', 20)
+[509, 486, 523, 4343, 13942, 42424, 25578, 3389, 12191, 16619, 12088, 6049, 5226, 4137, 41883, 18617, 10172, 35704, 25552, 29059]
+
+# Extra arguments for annoy are n_trees and index_fpath
+#   - n_trees is the number of trees for annoy
+#   - index_fpath is the directory for annoy index file
 ```
 
 ## Running tests
 ```bash
 # Download the data files
-$ wget 'https://s3.amazonaws.com/deepcompute-public/data/wordvecspace/wvspacefile.tgz'
+$ wget 'https://s3.amazonaws.com/deepcompute-public-data/wordvecspace/small_test_data.tgz'
 
-# Extract downloaded wvspacefile.tgz file
-$ tar xvzf wvspacefile.tgz
+# Extract downloaded small_test_data.tgz file
+$ tar xvzf small_test_data.tgz
 
 # Export the path of data file to the environment variables
-$ export WORDVECSPACE_DATAFILE="/home/user/wvspacefile/dc.wvspace"
+$ export WORDVECSPACE_DATAFILE="/home/user/dc.wvspace"
 
 # Run tests
 $ python3 setup.py test

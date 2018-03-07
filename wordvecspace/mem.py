@@ -9,10 +9,12 @@ from numba import guvectorize
 
 from .fileformat import WordVecSpaceFile
 from .base import WordVecSpace
+from .exception import UnknownIndex, UnknownWord
 
 np.set_printoptions(precision=4)
 
-# $export WORDVECSPACEMEM_DATADIR=/path/to/data/
+# export data file path for test cases
+# $export WORDVECSPACE_DATAFILE=/path/to/data/
 DATAFILE_ENV_VAR = os.environ.get('WORDVECSPACE_DATAFILE', ' ')
 
 # export blas path if your system has different path for blas
@@ -27,24 +29,6 @@ CblasRowMajor = 101
 CblasNoTrans = 111
 CblasTrans = 112
 incX = incY = 1
-
-class WordVecSpaceMemException(Exception):
-    pass
-
-class UnknownWord(WordVecSpaceMemException):
-    def __init__(self, word):
-        self.word = word
-
-    def __str__(self):
-        return '"%s"' % self.word
-
-class UnknownIndex(WordVecSpaceMemException):
-    def __init__(self, index):
-        self.index = index
-
-    def __int__(self):
-        return '"%s"' % self.index
-
 
 @guvectorize(['void(float32[:], float32[:])'], '(n) -> ()', nopython=True, target='parallel')
 def normalize_vectors(vec, m):
@@ -200,7 +184,7 @@ class WordVecSpaceMem(WordVecSpace):
         >>> print(wv.get_word_index("inidia", raise_exc=True)) # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         ...
-        wordvecspace.wordvecspace_mem.UnknownWord: "inidia"
+        wordvecspace.exception.UnknownWord: "inidia"
         '''
 
         if isinstance(word, int):
@@ -240,7 +224,7 @@ class WordVecSpaceMem(WordVecSpace):
         >>> print(wv.get_word_at_index(72000, raise_exc=True)) # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         ...
-        wordvecspace_mem.UnknownIndex: "72000"
+        wordvecspace.exception.UnknownIndex: "72000"
         '''
 
         try:
@@ -331,7 +315,7 @@ class WordVecSpaceMem(WordVecSpace):
         wmat = []
         if isinstance(words_or_indices, (list, tuple)):
             n = len(words_or_indices)
-            wmat = self._make_array(dtype=np.float32, shape=(n, self.dim))
+            wmat = self._make_array(shape=(n, self.dim), dtype=np.float32)
 
             for i, w in enumerate(words_or_indices):
                 wmat[i] = self.get_word_vector(w, normalized=normalized, raise_exc=raise_exc)
@@ -374,19 +358,22 @@ class WordVecSpaceMem(WordVecSpace):
         >>> print(wv.get_distance("india", "usa"))
         0.325127840042
         >>> print(wv.get_distance("india", "usa", metric='euclidean'))
-        0.8063843250274658
+        7.53166389465332
         '''
 
         if not metric:
             metric = self.metric
 
-        vec1 = self.get_word_vector(word_or_index1, normalized=True, raise_exc=raise_exc)
-        vec2 = self.get_word_vector(word_or_index2, normalized=True, raise_exc=raise_exc)
-
         if metric == 'angular':
+            vec1 = self.get_word_vector(word_or_index1, normalized=True, raise_exc=raise_exc)
+            vec2 = self.get_word_vector(word_or_index2, normalized=True, raise_exc=raise_exc)
+
             return 1 - np.dot(vec1, vec2.T)
 
         elif metric == 'euclidean':
+            vec1 = self.get_word_vector(word_or_index1, raise_exc=raise_exc)
+            vec2 = self.get_word_vector(word_or_index2, raise_exc=raise_exc)
+
             return distance.euclidean(vec1, vec2)
 
     def get_distances(self, row_words_or_indices, col_words_or_indices=None, metric=None, raise_exc=False):
@@ -408,43 +395,50 @@ class WordVecSpaceMem(WordVecSpace):
         >>> print(wv.get_distances(["andhra"]))
         [[ 1.2817  0.6138  0.2995 ...,  0.9945  1.224   0.6137]]
         >>> print(wv.get_distances(["andhra"], metric='euclidean'))
-        [[ 1.601   1.108   0.7739 ...,  1.4103  1.5646  1.1079]]
+        [[ 9.0035  8.3985  7.1658 ...,  9.2236  9.6078  8.6349]]
         '''
+
+        r = row_words_or_indices
+        c = col_words_or_indices
 
         if not metric:
             metric = self.metric
 
-        if not isinstance(row_words_or_indices, (tuple, list)):
-            row_words_or_indices = [row_words_or_indices]
+        if not isinstance(r, (tuple, list)):
+            r = [r]
 
-        row_vectors = self.get_word_vectors(row_words_or_indices, normalized=True, raise_exc=raise_exc)
-        col_vectors = self.vectors
+        if c:
+            if not isinstance(c, (tuple, list)):
+                c = [c]
 
-        if col_words_or_indices:
-            if not isinstance(col_words_or_indices, (tuple, list)):
-                col_words_or_indices = [col_words_or_indices]
+        if metric == 'angular':
+            row_vectors = self.get_word_vectors(r, normalized=True, raise_exc=raise_exc)
 
-            col_vectors = self.get_word_vectors(col_words_or_indices, normalized=True, raise_exc=raise_exc)
+            col_vectors = self.vectors
+            if c:
+                col_vectors = self.get_word_vectors(c, normalized=True, raise_exc=raise_exc)
 
-        if len(row_words_or_indices) == 1:
-            nvecs, dim = col_vectors.shape
+            if len(r) == 1:
+                nvecs, dim = col_vectors.shape
 
-            if metric == 'angular':
                 vec_out = self._make_array((len(col_vectors), len(row_vectors)), dtype=np.float32)
                 res = self._perform_sgemv(col_vectors, row_vectors, vec_out, nvecs, dim).T
 
-            elif metric == 'euclidean':
-                return distance.cdist(row_vectors, col_vectors, 'euclidean')
-
-        else:
-            if metric == 'angular':
+            else:
                 mat_out = self._make_array((len(row_vectors), len(col_vectors)), dtype=np.float32)
                 res = self._perform_sgemm(row_vectors, col_vectors, mat_out)
 
-            elif metric == 'euclidean':
-                return distance.cdist(row_vectors, col_vectors, 'euclidean')
+            return 1 - res
 
-        return 1 - res
+        elif metric == 'euclidean':
+            row_vectors = self.get_word_vectors(r, raise_exc=raise_exc)
+
+            if c:
+                col_vectors = self.get_word_vectors(c, raise_exc=raise_exc)
+            else:
+                col_vectors = self._f.getmany(0, self.nvecs)
+
+            return distance.cdist(row_vectors, col_vectors, 'euclidean')
 
     DEFAULT_K = 512
     def get_nearest(self, words_or_indices, k=DEFAULT_K, combination=False, metric=None, raise_exc=False):
@@ -453,21 +447,22 @@ class WordVecSpaceMem(WordVecSpace):
         >>> print(wv.get_nearest("india", 20))
         [509, 486, 523, 4343, 14208, 13942, 42424, 25578, 6212, 2475, 3560, 13508, 20919, 3389, 4484, 19995, 8776, 7012, 12191, 16619]
         >>> print(wv.get_nearest("india", 20, metric='euclidean'))
-        [509, 486, 523, 4343, 14208, 13942, 42424, 25578, 6212, 2475, 3560, 13508, 20919, 3389, 4484, 19995, 8776, 7012, 12191, 16619]
+        [509, 486, 14208, 523, 13942, 2475, 4484, 4343, 3389, 3560, 2196, 6212, 6866, 8573, 6049, 8062, 5998, 4137, 4622, 3966]
         '''
+
         if not metric:
             metric = self.metric
 
         distances = self.get_distances(words_or_indices, metric=metric, raise_exc=raise_exc)
 
-        l = []
+        ner = []
         for dist in distances:
             dist = pd.Series(dist.reshape((len(dist,))))
             dist = dist.nsmallest(k).keys()
-            l.append(list(dist))
+            ner.append(list(dist))
 
         if combination:
-            return list(set(l[0]).intersection(*l))
+            return list(set(ner[0]).intersection(*ner))
 
         else:
-            return l if isinstance(words_or_indices, (list, tuple)) else l[0]
+            return ner if isinstance(words_or_indices, (list, tuple)) else ner[0]

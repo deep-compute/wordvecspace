@@ -1,5 +1,4 @@
 import os
-import pprint
 
 import numpy as np
 from .fileformat import WordVecSpaceFile

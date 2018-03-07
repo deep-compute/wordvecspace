@@ -2,7 +2,7 @@ language: python
 python:
 - '3.5'
 before_install:
-- wget 'https://s3.amazonaws.com/deepcompute-public/data/wordvecspace/wvspacefile.tgz'
+- wget 'https://s3.amazonaws.com/deepcompute-public-data/wordvecspace/small_test_data.tgz'
   && tar xvzf wvspacefile.tgz
 - export WORDVECSPACE_DATAFILE='./wvspacefile/dc.wvspace'
 install: 

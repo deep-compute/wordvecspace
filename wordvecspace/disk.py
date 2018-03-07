@@ -6,7 +6,8 @@ import numpy as np
 from .fileformat import WordVecSpaceFile
 from .base import WordVecSpace
 
-# export WORDVECSPACE_DATADIR=/path/to/data
+# export data file path for test cases
+# export WORDVECSPACE_DATAFILE=/path/to/data
 DATAFILE_ENV_VAR = os.environ.get('WORDVECSPACE_DATAFILE', ' ')
 
 class WordVecSpaceDisk(WordVecSpace):

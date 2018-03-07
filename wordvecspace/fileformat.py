@@ -6,27 +6,12 @@ import numpy as np
 import tables
 import cmph
 
+from .exception import UnknownIndex, UnknownWord
+
+# export data file path for test cases
 # $export WVSPACEFILE_DATADIR=/path/to/data/
 DATAFILE_ENV_VAR = os.environ.get('WORDVECSPACE_DATAFILE', '')
-
 DIM = 5
-
-class BaseException(Exception):
-    pass
-
-class UnknownIndex(BaseException):
-    def __init__(self, index):
-        self.index = index
-
-    def __int__(self):
-        return '"%s"' % self.index
-
-class UnknownWord(BaseException):
-    def __init__(self, word):
-        self.word = word
-
-    def __str__(self):
-        return '"%s"' % self.word
 
 class WordVecSpaceFile(object):
     DEFAULT_MODE = 'r'
