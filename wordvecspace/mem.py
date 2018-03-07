@@ -12,6 +12,7 @@ from .base import WordVecSpace
 from .exception import UnknownIndex, UnknownWord
 
 np.set_printoptions(precision=4)
+check_equal = np.testing.assert_array_almost_equal
 
 # export data file path for test cases
 # $export WORDVECSPACE_DATAFILE=/path/to/data/
@@ -380,11 +381,9 @@ class WordVecSpaceMem(WordVecSpace):
         '''
         >>> wv = WordVecSpaceMem(DATAFILE_ENV_VAR)
         >>> res = wv.get_distances("for", ["to", "for", "india"])
-        >>> print(res)
-        [[ 0.381   0.      0.9561]]
+        >>> check_equal(res, np.array([[  0.381, 0.,  0.9561]], dtype=np.float32), decimal=4)
         >>> res = wv.get_distances("for", ["to", "for", "inidia"])
-        >>> print(res)
-        [[ 0.381  0.     1.   ]]
+        >>> check_equal(res, np.array([[  0.381, 0.,  1.]], dtype=np.float32), decimal=4)
         >>> print(wv.get_distances(["india", "for"], ["to", "for", "usa"]))
         [[ 1.0685  0.9561  0.3251]
          [ 0.381   0.      1.4781]]

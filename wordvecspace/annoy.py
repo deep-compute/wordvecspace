@@ -10,6 +10,8 @@ from .fileformat import WordVecSpaceFile
 # export WORDVECSPACE_DATAFILE=/path/to/data
 DATAFILE_ENV_VAR = os.environ.get('WORDVECSPACE_DATAFILE', ' ')
 
+check_equal = np.testing.assert_array_almost_equal
+
 class WordVecSpaceAnnoy(WordVecSpaceDisk):
 
     N_TREES = 1
@@ -56,8 +58,8 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
         get_distances(words_x, words_y)
 
         >>> wv = WordVecSpaceAnnoy(DATAFILE_ENV_VAR)
-        >>> print(wv.get_distances("for", ["to", "for", "india"]))
-        [[ 0.8729  0.      1.3828]]
+        >>> res = wv.get_distances("for", ["to", "for", "india"])
+        >>> check_equal(res, np.array([[  0.8729,  0,  1.3828e+00]], dtype=np.float32), decimal=1)
         '''
 
         r = row_words_or_indices
