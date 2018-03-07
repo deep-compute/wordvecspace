@@ -112,8 +112,11 @@ class WordVecSpaceFile(object):
         When we have vectors loaded into the hdf5 file we can retrive
         word, vector, occurrence together or individually based on index
         >>> wv = WordVecSpaceFile(DATAFILE_ENV_VAR, DIM , 'r')
-        >>> wv.get(1)
-        {'vector': array([-0.8461,  0.8698,  1.0971, -0.8056,  0.7051], dtype=float32), 'word': 'the', 'occurrence': 1061396}
+        >>> from pprint import pprint
+        >>> pprint(wv.get(1))
+        {'occurrence': 1061396,
+         'vector': array([-0.8461,  0.8698,  1.0971, -0.8056,  0.7051], dtype=float32),
+         'word': 'the'}
         >>> wv.get(1, wv.VECTOR)
         array([-0.8461,  0.8698,  1.0971, -0.8056,  0.7051], dtype=float32)
         >>> wv.get(1, wv.OCCURRENCE)
