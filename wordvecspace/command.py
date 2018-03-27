@@ -4,6 +4,7 @@ from basescript import BaseScript
 
 from .convert import GW2VectoWordVecSpaceFile
 from .mem import WordVecSpaceMem
+from .disk import WordVecSpaceDisk
 from .annoy import WordVecSpaceAnnoy
 from .exception import UnknownType
 
@@ -16,15 +17,15 @@ class WordVecSpaceCommand(BaseScript):
     EXTRA_ARGS = None
 
     def convert(self):
-        #FIXME: track issue to send logger
+        # FIXME: track issue to send logger
         convertor = GW2VectoWordVecSpaceFile(
                         self.args.input_dir,
-                        self.args.output_file
+                        self.args.output_dir
                         )
         convertor.start()
 
     def _interact_console(self, interact, dim, _type):
-        print("%s console (vectors=%s dims=%s)" %(_type, interact.nvecs, dim))
+        print("%s console (vectors=%s dims=%s)" % (_type, interact.nvecs, dim))
 
         namespace = {}
         namespace['wv'] = interact
@@ -45,15 +46,20 @@ class WordVecSpaceCommand(BaseScript):
 
     def interact(self):
         if self.args.type == 'mem':
-            interact = WordVecSpaceMem(self.args.input_file, self.args.metric)
+            interact = WordVecSpaceMem(self.args.input_dir, self.args.metric)
 
             self._interact_console(interact, interact.dim, 'WordVecSpaceMem')
 
         elif self.args.type == 'annoy':
             eargs = self._get_extra_args()
-            interact = WordVecSpaceAnnoy(self.args.input_file, metric=self.args.metric, **eargs)
+            interact = WordVecSpaceAnnoy(self.args.input_dir, metric=self.args.metric, **eargs)
 
             self._interact_console(interact, interact.dim, 'WordVecSpaceAnnoy')
+
+        elif self.args.type == 'disk':
+            interact = WordVecSpaceDisk(self.args.input_dir, self.args.metric)
+
+            self._interact_console(interact, interact.dim, 'WordVecSpaceDisk')
 
         else:
             raise UnknownType(self.args.type)
@@ -69,18 +75,25 @@ class WordVecSpaceCommand(BaseScript):
 
         if self.args.type == 'mem':
             server = WordVecSpaceServer(self.args.type,
-                    self.args.input_file,
-                    metric=self.args.metric,
-                    port=self.args.port)
+                                        self.args.input_dir,
+                                        metric=self.args.metric,
+                                        port=self.args.port)
             server.start()
 
         elif self.args.type == 'annoy':
             eargs = self._get_extra_args()
             server = WordVecSpaceServer(self.args.type,
-                    self.args.input_file,
-                    metric=self.args.metric,
-                    port=self.args.port,
-                    **eargs)
+                                        self.args.input_dir,
+                                        metric=self.args.metric,
+                                        port=self.args.port,
+                                        **eargs)
+            server.start()
+
+        elif self.args.type == 'disk':
+            server = WordVecSpaceServer(self.args.type,
+                                        self.args.input_dir,
+                                        metric=self.args.metric,
+                                        port=self.args.port)
             server.start()
 
         else:
@@ -94,17 +107,17 @@ class WordVecSpaceCommand(BaseScript):
         convert_cmd.set_defaults(func=self.convert)
         convert_cmd.add_argument('input_dir',
             help='Input directory containing Google Word2Vec format files'
-                 ' (vocab.txt, vectors.bin)')
-        convert_cmd.add_argument('output_file',
-            help='Output file where WordVecSpace format files are produced')
+                                 ' (vocab.txt, vectors.bin)')
+        convert_cmd.add_argument('output_dir',
+            help='Output directory where WordVecSpace format files are produced')
 
         interact_cmd = subcommands.add_parser('interact',
                 help='WordVecSpace Console')
         interact_cmd.set_defaults(func=self.interact)
         interact_cmd.add_argument('type',
-                help='wordvecspace feature mem or annoy')
-        interact_cmd.add_argument('input_file',
-                help='wordvecspace input file')
+                help='wordvecspace feature mem or annoy or disk')
+        interact_cmd.add_argument('input_dir',
+                help='wordvecspace input dir')
         interact_cmd.add_argument('-m', '--metric',
                 default=self.METRIC, type=str,
                 help='wordvecspace metric for type of distance calculation')
@@ -118,9 +131,9 @@ class WordVecSpaceCommand(BaseScript):
                 help='WordVecSpace Service')
         runserver_cmd.set_defaults(func=self.runserver)
         runserver_cmd.add_argument('type',
-                help='wordvecspace feature mem or annoy')
-        runserver_cmd.add_argument('input_file',
-                help='wordvecspace input file')
+                help='wordvecspace feature mem or annoy or disk')
+        runserver_cmd.add_argument('input_dir',
+                help='wordvecspace input director')
         runserver_cmd.add_argument('-m', '--metric',
                 default=self.METRIC, type=str,
                 help='wordvecspace metric for type of distance calculation')
@@ -133,8 +146,10 @@ class WordVecSpaceCommand(BaseScript):
                         Eg: --eargs n_trees=1:index_fpath=/tmp\
                         (This is considered only when the type is annoy)')
 
+
 def main():
     WordVecSpaceCommand().start()
+
 
 if __name__ == '__main__':
     main()
