@@ -337,7 +337,7 @@ class WordVecSpaceMem(WordVecSpace):
             if len(r) == 1:
                 nvecs, dim = col_vectors.shape
 
-                vec_out = self._make_array(len(col_vectors), len(row_vectors)), dtype=np.float32)
+                vec_out = self._make_array((len(col_vectors), len(row_vectors)), dtype=np.float32)
                 res = self._perform_sgemv(col_vectors, row_vectors, vec_out, nvecs, dim).T
 
             else:

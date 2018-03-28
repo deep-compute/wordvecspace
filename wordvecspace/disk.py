@@ -8,7 +8,6 @@ from scipy.spatial import distance
 from .fileformat import WordVecSpaceFile
 from .base import WordVecSpace
 
-
 np.set_printoptions(precision=4)
 check_equal = np.testing.assert_array_almost_equal
 
