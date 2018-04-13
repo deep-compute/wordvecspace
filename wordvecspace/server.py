@@ -143,7 +143,8 @@ class APIFunctions(object):
 
         return self.wv.get_word_vectors(words_or_indices, normalized=normalized, raise_exc=raise_exc).tolist()
 
-    def get_distance(self, word_or_index1: Union[str, int], word_or_index2: Union[str, int], metric: Union[str, None]=None, raise_exc: bool=False) -> float:
+    def get_distance(self, word_or_index1: Union[str, int], word_or_index2: Union[str, int], metric: Union[str, None]=None, \
+                    raise_exc: bool=False) -> float:
         '''
         Get cosine distance between two words
 
@@ -156,7 +157,8 @@ class APIFunctions(object):
 
         return self.wv.get_distance(word_or_index1, word_or_index2, raise_exc=raise_exc)
 
-    def get_distances(self, row_words_or_indices: Union[str, int, tuple, list], col_words_or_indices: Union[list, None]=None, metric: Union[str, None]=None, raise_exc: bool=False) -> list:
+    def get_distances(self, row_words_or_indices: Union[str, int, tuple, list], col_words_or_indices: Union[list, None]=None, \
+                    metric: Union[str, None]=None, raise_exc: bool=False) -> list:
         '''
         Get distances between given words and all words in the vector space
 
@@ -177,7 +179,8 @@ class APIFunctions(object):
 
         return self.wv.get_distances(row_words_or_indices, col_words_or_indices=col_words_or_indices, raise_exc=raise_exc).tolist()
 
-    def get_nearest(self, words_or_indices: Union[str, int, list, tuple], k: int=512, metric: Union[str, None]=None, combination: bool=False, raise_exc: bool=False) -> list:
+    def get_nearest(self, words_or_indices: Union[str, int, list, tuple], k: int=512, metric: Union[str, None]=None, \
+                    combination: bool=False, raise_exc: bool=False) -> list:
         '''
         get_nearest_neighbors("india", 20) => [509, 3389, 486, 523, 7125, 16619, 4491, 12191, 6866, 8776, 15232, 14208, 5998, 21916, 5226, 6322, 4343, 6212, 10172, 6186]
         get_nearest(["ram", "india"], 5, metric='euclidean') => [[3844, 16727, 15811, 42731, 41516], [509, 3389, 486, 523, 7125]]
@@ -185,8 +188,7 @@ class APIFunctions(object):
         '''
 
         if self._type == 'mem' or 'disk':
-            neg = self.wv.get_nearest(
-                words_or_indices, k, raise_exc=raise_exc, metric=metric)
+            neg = self.wv.get_nearest(words_or_indices, k, raise_exc=raise_exc, metric=metric)
 
             if isinstance(words_or_indices, (tuple, list)) and len(words_or_indices) > 1:
                 for neg_key, item in enumerate(neg):

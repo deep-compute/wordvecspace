@@ -56,7 +56,6 @@ class GWVecBinWriter(object):
     def close(self):
         self.out.close()
 
-
 class GW2VectoWordVecSpaceFile(object):
     '''
     Abstraction that helps in converting word vector space data

@@ -14,9 +14,8 @@ DUMMY_LOG = Dummy()
 # $export WORDVECSPACE_DATADIR=/path/to/data/
 DATAFILE_ENV_VAR = os.environ.get('WORDVECSPACE_DATADIR', '')
 
-
 class WordVecSpaceFile(object):
-    DEFAULT_MODE = 'r+'
+    DEFAULT_MODE = 'w'
     VECTOR = 1 << 0
     WORD = 1 << 1
     OCCURRENCE = 1 << 2

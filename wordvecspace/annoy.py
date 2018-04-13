@@ -8,7 +8,7 @@ from .fileformat import WordVecSpaceFile
 
 # export data directory path for test cases
 # export WORDVECSPACE_DATADIR=/path/to/data
-DATAFILE_ENV_VAR = os.environ.get('WORDVECSPACE_DATADIR', ' ')
+DATAFILE_ENV_VAR = os.environ.get('WORDVECSPACE_DATADIR', '')
 
 check_equal = np.testing.assert_array_almost_equal
 
@@ -97,7 +97,6 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
         return mat
 
     DEFAULT_K = 512
-
     def get_nearest(self, words_or_indices, k=DEFAULT_K, combination=False, raise_exc=False):
         '''
         >>> wv = WordVecSpaceAnnoy(DATAFILE_ENV_VAR)

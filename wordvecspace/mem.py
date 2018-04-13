@@ -15,8 +15,7 @@ check_equal = np.testing.assert_array_almost_equal
 
 # export data directory path for test cases
 # $export WORDVECSPACE_DATADIR=/path/to/data/
-DATAFILE_ENV_VAR = os.environ.get('WORDVECSPACE_DATADIR', ' ')
-
+DATAFILE_ENV_VAR = os.environ.get('WORDVECSPACE_DATADIR', '')
 
 @guvectorize(['void(float32[:], float32[:])'], '(n) -> ()', nopython=True, target='parallel')
 def normalize_vectors(vec, m):
@@ -381,5 +380,4 @@ class WordVecSpaceMem(WordVecSpace):
         if combination:
             return list(set(ner[0]).intersection(*ner))
 
-        else:
-            return ner if isinstance(words_or_indices, (list, tuple)) else ner[0]
+        return ner if isinstance(words_or_indices, (list, tuple)) else ner[0]

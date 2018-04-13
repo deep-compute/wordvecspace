@@ -103,13 +103,13 @@ class WordVecSpaceCommand(BaseScript):
         super(WordVecSpaceCommand, self).define_subcommands(subcommands)
 
         convert_cmd = subcommands.add_parser('convert',
-            help='Convert data in Google\'s Word2Vec format to WordVecSpace format')
+                help='Convert data in Google\'s Word2Vec format to WordVecSpace format')
         convert_cmd.set_defaults(func=self.convert)
         convert_cmd.add_argument('input_dir',
-            help='Input directory containing Google Word2Vec format files'
-                                 ' (vocab.txt, vectors.bin)')
+                help='Input directory containing Google Word2Vec format files'
+                    '(vocab.txt, vectors.bin)')
         convert_cmd.add_argument('output_dir',
-            help='Output directory where WordVecSpace format files are produced')
+                help='Output directory where WordVecSpace format files are produced')
 
         interact_cmd = subcommands.add_parser('interact',
                 help='WordVecSpace Console')
@@ -146,10 +146,8 @@ class WordVecSpaceCommand(BaseScript):
                         Eg: --eargs n_trees=1:index_fpath=/tmp\
                         (This is considered only when the type is annoy)')
 
-
 def main():
     WordVecSpaceCommand().start()
-
 
 if __name__ == '__main__':
     main()

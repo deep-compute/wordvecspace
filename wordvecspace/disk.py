@@ -13,7 +13,7 @@ check_equal = np.testing.assert_array_almost_equal
 
 # export data directory path for test cases
 # export WORDVECSPACE_DATADIR=/path/to/data
-DATAFILE_ENV_VAR = os.environ.get('WORDVECSPACE_DATADIR', ' ')
+DATAFILE_ENV_VAR = os.environ.get('WORDVECSPACE_DATADIR', '')
 
 class WordVecSpaceDisk(WordVecSpace):
     METRIC = 'angular'
@@ -277,7 +277,6 @@ class WordVecSpaceDisk(WordVecSpace):
             return distance.cdist(row_vectors, col_vectors, 'euclidean')
 
     DEFAULT_K = 512
-
     def get_nearest(self, words_or_indices, k=DEFAULT_K, combination=False, metric=None, raise_exc=False):
         '''
         >>> wv = WordVecSpaceDisk(DATAFILE_ENV_VAR)
@@ -301,5 +300,4 @@ class WordVecSpaceDisk(WordVecSpace):
         if combination:
             return list(set(ner[0]).intersection(*ner))
 
-        else:
-            return ner if isinstance(words_or_indices, (list, tuple)) else ner[0]
+        return ner if isinstance(words_or_indices, (list, tuple)) else ner[0]

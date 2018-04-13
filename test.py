@@ -8,7 +8,6 @@ from wordvecspace import mem
 from wordvecspace import annoy
 from wordvecspace import disk
 
-
 def suite_test():
     suite = unittest.TestSuite()
 
@@ -18,7 +17,6 @@ def suite_test():
     suite.addTests(doctest.DocTestSuite(disk))
 
     return suite
-
 
 if __name__ == "__main__":
     doctest.testmod(fileformat)
