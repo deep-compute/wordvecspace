@@ -7,19 +7,24 @@ from kwikapi import API
 from deeputil import Dummy
 
 from .mem import WordVecSpaceMem
+from .disk import WordVecSpaceDisk
 from .annoy import WordVecSpaceAnnoy
 
 DUMMY_LOG = Dummy()
 
+
 class APIFunctions(object):
-    def __init__(self, _type, input_file, n_trees, metric, index_fpath):
+    def __init__(self, _type, input_dir, n_trees, metric, index_fpath):
         self._type = _type
 
         if self._type == 'mem':
-            self.wv = WordVecSpaceMem(input_file, metric=metric)
+            self.wv = WordVecSpaceMem(input_dir, metric=metric)
 
         elif self._type == 'annoy':
-            self.wv = WordVecSpaceAnnoy(input_file, n_trees=n_trees, metric=metric, index_fpath=index_fpath)
+            self.wv = WordVecSpaceAnnoy(input_dir, n_trees=n_trees, metric=metric, index_fpath=index_fpath)
+
+        elif self._type == 'disk':
+            self.wv = WordVecSpaceDisk(input_dir, metric=metric)
 
     def does_word_exist(self, word: str) -> bool:
         '''
@@ -76,8 +81,8 @@ class APIFunctions(object):
         '''
         Get vector for a given word or index
 
-        get_word_vector('india') => [-6.4482 -2.1636  5.7277 -3.7746  3.583 ]
-        get_word_vector(509, normalized=True) => [-0.6259 -0.21    0.5559 -0.3664  0.3478]
+        get_word_vector('india') => [-0.7871 -0.2993  0.3233 -0.2864  0.323 ]
+        get_word_vector(509, normalized=True) => [-0.7871 -0.2993  0.3233 -0.2864  0.323 ]
         get_word_vector('inidia', normalized=True) => [ 0.  0.  0.  0.  0.]
         '''
 
@@ -87,7 +92,7 @@ class APIFunctions(object):
         '''
         Get magnitude for given word
 
-        get_vector_magnitude("hi") => 8.7948
+        get_vector_magnitude("hi") => 1.0
         '''
 
         return self.wv.get_vector_magnitude(self, word_or_index, raise_exc=raise_exc)
@@ -96,8 +101,8 @@ class APIFunctions(object):
         '''
         Get vector magnitudes for given words or indices
 
-        get_vector_magnitudes(["hi", "india"]) => [  8.7948  10.303 ]
-        get_vector_magnitudes(["inidia", "india"]) => [  0.     10.303]
+        get_vector_magnitudes(["hi", "india"]) => [1.0, 1.0]
+        get_vector_magnitudes(["inidia", "india"]) => [0.0, 1.0]
         '''
 
         return self.wv.get_vector_magnitudes(words_or_indices, raise_exc).tolist()
@@ -132,26 +137,28 @@ class APIFunctions(object):
         '''
         Get vectors for given words or indices
 
-        get_word_vectors(["hi", "india"]) => [[ 0.2473  0.2535 -0.3206  0.8058  0.3501], [-0.6259 -0.21    0.5559 -0.3664  0.3478]]
-        get_word_vectors(["hi", "inidia"]) => [[ 0.2473  0.2535 -0.3206  0.8058  0.3501], [ 0.      0.      0.      0.      0.    ]]
+        get_word_vectors(["hi", "india"]) => [[ 0.6342  0.2268 -0.3904  0.0368  0.6266], [-0.7871 -0.2993  0.3233 -0.2864  0.323 ]]
+        get_word_vectors(["hi", "inidia"]) => [[[ 0.6342  0.2268 -0.3904  0.0368  0.6266], [ 0.      0.      0.      0.      0.    ]]
         '''
 
         return self.wv.get_word_vectors(words_or_indices, normalized=normalized, raise_exc=raise_exc).tolist()
 
-    def get_distance(self, word_or_index1: Union[str, int], word_or_index2: Union[str, int], metric: Union[str, None]=None, raise_exc: bool=False) -> float:
+    def get_distance(self, word_or_index1: Union[str, int], word_or_index2: Union[str, int], metric: Union[str, None]=None, \
+                    raise_exc: bool=False) -> float:
         '''
         Get cosine distance between two words
 
-        get_distance(250, "india") => 1.16397565603
-        get_distance(250, "india", metric='euclidean') => 1.5029966831207275
+        get_distance(250, "india") => 1.1418992727994919
+        get_distance(250, "india", metric='euclidean') => 1.5112241506576538
         '''
 
-        if self._type == 'mem':
+        if self._type == 'mem' or 'disk':
             return self.wv.get_distance(word_or_index1, word_or_index2, metric=metric, raise_exc=raise_exc)
 
         return self.wv.get_distance(word_or_index1, word_or_index2, raise_exc=raise_exc)
 
-    def get_distances(self, row_words_or_indices: Union[str, int, tuple, list], col_words_or_indices: Union[list, None]=None, metric: Union[str, None]=None, raise_exc: bool=False) -> list:
+    def get_distances(self, row_words_or_indices: Union[str, int, tuple, list], col_words_or_indices: Union[list, None]=None, \
+                    metric: Union[str, None]=None, raise_exc: bool=False) -> list:
         '''
         Get distances between given words and all words in the vector space
 
@@ -160,26 +167,27 @@ class APIFunctions(object):
         get_distances(word, words)
         get_distances(words_x, words_y)
 
-        get_distances("for", ["to", "for", "india"] => [[  1.4990e-01], [ -1.1921e-07], [  1.3855e+00]]
-        get_distances("for", ["to", "for", "inidia"]) => [[  1.4990e-01], [ -1.1921e-07], [  1.0000e+00]]
-        get_distances(["india", "for"], ["to", "for", "usa"]) => [[  1.1830e+00,   1.3855e+00,   4.8380e-01], [  1.4990e-01,  -1.1921e-07,   1.4975e+00]]
-        get_distances(["india", "usa"]) => [[ 1.4903,  0.4202,  0.269 , ...,  1.2041,  1.3539,  0.6154], [ 1.8084,  0.9541,  1.1678, ...,  0.5963,  1.0458,  1.1608]]
-        get_distances(["andhra"]) => [[ 1.3432,  0.5781,  0.2306, ...,  1.0937,  1.1369,  0.4284]]
-        get_distances(["andhra"], metric='euclidean') => [[ 1.601   1.108   0.7739 ...,  1.4103  1.5646  1.1079]]
+        get_distances("for", ["to", "for", "india"] => [[  2.7428e-01,   5.9605e-08,   1.1567e+00]]
+        get_distances("for", ["to", "for", "inidia"]) => [[  2.7428e-01,   5.9605e-08,   1.0000e+00]]
+        get_distances(["india", "for"], ["to", "for", "usa"]) => [[[  1.1445e+00   1.1567e+00   3.7698e-01], [  2.7428e-01   5.9605e-08   1.6128e+00]]
+        get_distances(["india", "usa"]) => [[ 1.5464  0.4876  0.3017 ...,  1.2492  1.2451  0.8925], [ 1.0436  0.9995  1.0913 ...,  0.6996  0.8014  1.1608]]
+        get_distances(["andhra"]) => [[ 1.5418  0.7153  0.277  ...,  1.1657  1.0774  0.7036]]
+        get_distances(["andhra"], metric='euclidean') => [[ 1.756   1.1961  0.7443 ...,  1.5269  1.4679  1.1862]]
         '''
-        if self._type == 'mem':
+        if self._type == 'mem' or 'disk':
             return self.wv.get_distances(row_words_or_indices, col_words_or_indices=col_words_or_indices, metric=metric, raise_exc=raise_exc).tolist()
 
         return self.wv.get_distances(row_words_or_indices, col_words_or_indices=col_words_or_indices, raise_exc=raise_exc).tolist()
 
-    def get_nearest(self, words_or_indices: Union[str, int, list, tuple], k: int=512, metric: Union[str, None]=None, combination: bool=False, raise_exc: bool=False) -> list:
+    def get_nearest(self, words_or_indices: Union[str, int, list, tuple], k: int=512, metric: Union[str, None]=None, \
+                    combination: bool=False, raise_exc: bool=False) -> list:
         '''
-        get_nearest_neighbors("india", 20) => [509, 486, 14208, 20639, 8573, 3389, 5226, 20919, 10172, 6866, 9772, 24149, 13942, 1980, 20932, 28413, 17910, 2196, 28738, 20855]
-        get_nearest(["ram", "india"], 5, metric='euclidean') => [[3844, 38851, 25381, 10830, 17049], [509, 486, 523, 4343, 14208]]
-        get_nearest(['india', 'bosnia'], 10, combination=True) => [14208, 486, 523, 4343, 42424, 509]
+        get_nearest_neighbors("india", 20) => [509, 3389, 486, 523, 7125, 16619, 4491, 12191, 6866, 8776, 15232, 14208, 5998, 21916, 5226, 6322, 4343, 6212, 10172, 6186]
+        get_nearest(["ram", "india"], 5, metric='euclidean') => [[3844, 16727, 15811, 42731, 41516], [509, 3389, 486, 523, 7125]]
+        get_nearest(['india', 'bosnia'], 10, combination=True) => [523, 509, 486]
         '''
 
-        if self._type == 'mem':
+        if self._type == 'mem' or 'disk':
             neg = self.wv.get_nearest(words_or_indices, k, raise_exc=raise_exc, metric=metric)
 
             if isinstance(words_or_indices, (tuple, list)) and len(words_or_indices) > 1:
@@ -196,13 +204,14 @@ class APIFunctions(object):
 
         return neg
 
+
 class WordVecSpaceServer(object):
     N_TREES = 1
     METRIC = 'angular'
 
-    def __init__(self, _type, input_file, port, n_trees=N_TREES, metric=METRIC, index_fpath=None, log=DUMMY_LOG):
+    def __init__(self, _type, input_dir, port, n_trees=N_TREES, metric=METRIC, index_fpath=None, log=DUMMY_LOG):
         self._type = _type
-        self.input_file = input_file
+        self.input_dir = input_dir
         self.port = port
         self.n_trees = n_trees
         self.metric = metric
@@ -212,10 +221,10 @@ class WordVecSpaceServer(object):
     def start(self):
         self.api = API(log=self.log)
         self.api.register(APIFunctions(self._type,
-                                    self.input_file,
-                                    self.n_trees,
-                                    self.metric,
-                                    self.index_fpath), 'v1')
+                                       self.input_dir,
+                                       self.n_trees,
+                                       self.metric,
+                                       self.index_fpath), 'v1')
 
         app = self._make_app()
         app.listen(self.port)

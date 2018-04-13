@@ -1,124 +1,133 @@
 import os
 import sys
-import tempfile
 
 import numpy as np
-import tables
-import cmph
+from diskarray import DiskArray
+from diskdict import DiskDict
+from deeputil import Dummy
 
 from .exception import UnknownIndex, UnknownWord
 
-# export data file path for test cases
-# $export WVSPACEFILE_DATADIR=/path/to/data/
-DATAFILE_ENV_VAR = os.environ.get('WORDVECSPACE_DATAFILE', '')
-DIM = 5
+DUMMY_LOG = Dummy()
+
+# export data directory path for test cases
+# $export WORDVECSPACE_DATADIR=/path/to/data/
+DATAFILE_ENV_VAR = os.environ.get('WORDVECSPACE_DATADIR', '')
 
 class WordVecSpaceFile(object):
-    DEFAULT_MODE = 'r'
-    VECTOR       = 1 << 0
-    WORD         = 1 << 1
-    OCCURRENCE   = 1 << 2
-    ALL          = VECTOR | WORD | OCCURRENCE
+    DEFAULT_MODE = 'w'
+    VECTOR = 1 << 0
+    WORD = 1 << 1
+    OCCURRENCE = 1 << 2
+    ALL = VECTOR | WORD | OCCURRENCE
 
-    VAL_TO_TABLE_NAME = {VECTOR: 'vectors', WORD: 'words', OCCURRENCE: 'occurrences'}
+    GROWBY = 1000
 
-    def __init__(self, input_file, dim=None, mode=DEFAULT_MODE):
+    def __init__(self, dirpath, dim=None, mode=DEFAULT_MODE, growby=GROWBY, log=DUMMY_LOG):
         self.mode = mode
         self.dim = dim
-        self._fobj = tables.open_file(input_file, self.mode)
+        self.dirpath = dirpath
+        self.log = log
+        self._growby = growby
 
         if self.mode == 'w':
-            self._create_new()
-            self._fobj.root._v_attrs.dim = self.dim
+            self._meta, (self._vectors, self._occurrences, self._wordtoindex, self._indextoword) = self._init_disk()
 
         if self.mode == 'r':
-            self.dim = self._fobj.root._v_attrs.dim
+            self._meta, (self._vectors, self._occurrences, self._wordtoindex, self._indextoword) = self._read_from_disk()
+            self.dim = self._meta['dim']
 
-            d = self._fobj.root
-            t = self._create_tmpfile()
+    def _init_disk(self):
+        def J(x): return os.path.join(self.dirpath, x)
 
-            if (sys.version_info > (3, 0)):
-                t.write((bytes(d.cmph_data[:])))
-            else:
-                cmph_data = [chr(x) for x in d.cmph_data]
-                for value in cmph_data:
-                    t.write(value)
+        if not os.path.exists(self.dirpath):
+            os.makedirs(self.dirpath)
 
-            t.close()
+        meta = DiskDict(J('meta'))
+        meta['dim'] = self.dim
 
-            with open(t.name, 'r') as inpf:
-                self.mph = cmph.load_hash(inpf)
+        return meta, self._prepare_word_index_wvspace(self.dim, initialize=True)
 
-            if os.path.exists(t.name):
-                os.remove(t.name)
+    def _read_from_disk(self):
+        m = DiskDict(os.path.join(self.dirpath, 'meta'))
+
+        return m, self._prepare_word_index_wvspace(m['dim'])
+
+    def _prepare_word_index_wvspace(self, dim, initialize=False):
+        v_dtype, o_dtype = self._make_dtype(dim)
+
+        def J(x): return os.path.join(self.dirpath, x)
+
+        def S(f): return os.stat(f).st_size
+
+        v_path = J('vectors')
+        o_path = J('occurrences')
+
+        nvecs = noccurs = 0
+        if not initialize:
+            nvecs = S(v_path) / np.dtype(v_dtype).itemsize
+            noccurs = S(o_path) / np.dtype(o_dtype).itemsize
+
+        v_array = DiskArray(v_path, shape=(int(nvecs),), dtype=v_dtype, growby=self._growby, log=self.log)
+        o_array = DiskArray(o_path, shape=(int(noccurs),), dtype=o_dtype, growby=self._growby, log=self.log)
+
+        w_index = DiskDict(J('wordtoindex'))
+        i_word = DiskDict(J('indextoword'))
+
+        return v_array, o_array, w_index, i_word
+
+    def _make_dtype(self, dim):
+
+        v_dtype = [('vector', np.float32, dim)]
+
+        o_dtype = [('occurrence', np.uint64)]
+
+        return v_dtype, o_dtype
 
     def _make_array(self, shape, dtype):
         return np.ndarray(shape, dtype)
 
-    def _create_tmpfile(self):
-        _, f_obj = tempfile.mkstemp()
-
-        return open(f_obj, 'wb')
-
-    def _create_new(self):
-        _float = tables.Float32Atom()
-        _char = tables.UInt8Atom()
-        _int = tables.UInt64Atom()
-
-        f = self._fobj
-        shape = (0, self.dim)
-        f.create_earray(f.root, 'vectors', _float, shape)
-        f.create_earray(f.root, 'words', _char, (0,))
-        f.create_earray(f.root, 'words_index', _int, (0,))
-        f.create_earray(f.root, 'occurrences', _int, (0,))
-
-        self._tmp_f = self._create_tmpfile()
-
     def __len__(self):
         '''
-        >>> wv = WordVecSpaceFile(DATAFILE_ENV_VAR, DIM, 'r')
-        >>> len(wv)
+        >>> wv = WordVecSpaceFile(DATAFILE_ENV_VAR, mode='r')
+        >>> wv.__len__()
         71291
         '''
 
-        return len(self._fobj.root.vectors)
+        return len(self._vectors)
+
+    def add(self, word, occurrence, vector):
+        self._vectors.append((vector))
+        self._occurrences.append((occurrence,))
+
+        pos = len(self._vectors) - 1
+        self._wordtoindex[word] = pos
+        self._indextoword[pos] = word
 
     def get_word(self, index, raise_exc=False):
-        d = self._fobj.root
+        '''
+        >>> wv = WordVecSpaceFile(DATAFILE_ENV_VAR, mode='r')
+        >>> wv.get_word(1)
+        'the'
+        '''
+
         try:
-            s = d.words_index[index]
-        except IndexError:
+            word = self._indextoword[index]
+        except KeyError:
             if raise_exc:
                 raise UnknownIndex(index)
             else:
                 return None
 
-        try:
-            e = d.words_index[index+1]
-        except IndexError:
-            e = None
-
-        data = d.words[s:e]
-
-        # FIXME: is there a way to avoid this list comprehension
-        # based iteration in python level (so we can inc perf)
-        chars = [chr(x) for x in data]
-        word = ''.join(chars[:-1])
-
         return word
 
     def get(self, index, flags=ALL):
         '''
-        When we have vectors loaded into the hdf5 file we can retrive
-        word, vector, occurrence together or individually based on index
-        >>> wv = WordVecSpaceFile(DATAFILE_ENV_VAR, DIM , 'r')
-        >>> from pprint import pprint
-        >>> pprint(wv.get(1))
-        {'occurrence': 1061396,
-         'vector': array([-0.8461,  0.8698,  1.0971, -0.8056,  0.7051], dtype=float32),
-         'word': 'the'}
+        >>> wv = WordVecSpaceFile(DATAFILE_ENV_VAR, mode='r')
+        >>> sorted(wv.get(1).items())
+        [('occurrence', 1061396), ('vector', array([-0.5927,  0.0707,  0.2333, -0.5614, -0.5236], dtype=float32)), ('word', 'the')]
         >>> wv.get(1, wv.VECTOR)
-        array([-0.8461,  0.8698,  1.0971, -0.8056,  0.7051], dtype=float32)
+        array([-0.5927,  0.0707,  0.2333, -0.5614, -0.5236], dtype=float32)
         >>> wv.get(1, wv.OCCURRENCE)
         1061396
         >>> wv.get(1, wv.WORD)
@@ -129,51 +138,96 @@ class WordVecSpaceFile(object):
             raise IndexError
 
         vector = word = occurrence = None
-        d = self._fobj.root
 
         if flags & self.VECTOR:
-            vector = d.vectors[index]
+            vector = self._vectors[index]['vector']
 
         if flags & self.WORD:
             word = self.get_word(index)
 
         if flags & self.OCCURRENCE:
-            occurrence = d.occurrences[index]
+            occurrence = self._occurrences[index]['occurrence']
 
         d = (('vector', vector), ('word', word), ('occurrence', occurrence))
         d = [(k, v) for k, v in d if v is not None]
         # only one attribute requested
         if len(d) == 1:
-            return d[0][-1] # return single value
+            return d[0][-1]  # return single value
         else:
             return dict(d)
 
-    def _get_index(self, word):
-        d = self._fobj.root
-        c_index = self.mph(word)
-        w_index = d.cmph_index[c_index].item()
+    def get_word_index(self, word, raise_exc=False):
+        '''
+        >>> wv = WordVecSpaceFile(DATAFILE_ENV_VAR, mode='r')
+        >>> wv.get_word_index('the')
+        1
+        '''
 
-        return w_index
+        if isinstance(word, int):
+            if word < len(self._vectors):
+                return word
+            else:
+                if raise_exc:
+                    raise UnknownIndex(word)
+                return None
+        try:
+            index = self._wordtoindex[word]
+            get_word = self.get(index, self.WORD)
+            if word == get_word:
+                return index
+        except KeyError:
+            if raise_exc == True:
+                raise UnknownWord(word)
+            return None
 
     def get_word_vector(self, word, raise_exc=False):
         '''
-        >>> wv = WordVecSpaceFile(DATAFILE_ENV_VAR, DIM , 'r')
+        >>> wv = WordVecSpaceFile(DATAFILE_ENV_VAR, mode='r')
         >>> wv.get_word_vector('the')
-        array([-0.8461,  0.8698,  1.0971, -0.8056,  0.7051], dtype=float32)
+        array([-0.5927,  0.0707,  0.2333, -0.5614, -0.5236], dtype=float32)
         '''
 
         index = self.get_word_index(word, raise_exc=raise_exc)
-        try:
+        if index:
             vector = self.get(index, self.VECTOR)
-        except IndexError:
-            vector = self._make_array(dtype=np.float32, shape=(1, self.dim))
+        else:
+            vector = self._make_array(shape=(self.dim,), dtype=np.float32)
             vector.fill(0.0)
 
         return vector
 
+    def getmany(self, index, num, type=VECTOR):
+        '''
+        This function returns vectors, occurrences, words
+        based on the type in the range of indices
+        >>> wv = WordVecSpaceFile(DATAFILE_ENV_VAR, mode='r')
+        >>> wv.getmany(0, 2)
+        memmap([[ 0.5049,  0.5575, -0.4832, -0.4135,  0.1724],
+                [-0.5927,  0.0707,  0.2333, -0.5614, -0.5236]], dtype=float32)
+        >>> wv.getmany(0, 2, wv.WORD)
+        ['</s>', 'the']
+        >>> wv.getmany(0, 2, wv.OCCURRENCE)
+        memmap([      0, 1061396], dtype=uint64)
+        '''
+
+        if index > len(self) or num > len(self):
+            raise IndexError
+
+        s, e = index, num
+        if type == self.VECTOR:
+            return self._vectors[s:e]['vector']
+        elif type == self.OCCURRENCE:
+            return self._occurrences[s:e]['occurrence']
+        else:
+            words = []
+            for i in range(s, e):
+                word = self.get(i, self.WORD)
+                words.append(word)
+            return words
+
     def get_word_occurrence(self, word, raise_exc=False):
         '''
-        >>> wv = WordVecSpaceFile(DATAFILE_ENV_VAR, DIM , 'r')
+        >>> wv = WordVecSpaceFile(DATAFILE_ENV_VAR, mode='r')
         >>> wv.get_word_occurrence('the')
         1061396
         '''
@@ -186,136 +240,8 @@ class WordVecSpaceFile(object):
 
         return occurrence
 
-    def get_word_index(self, word, raise_exc=False):
-        '''
-        >>> wv = WordVecSpaceFile(DATAFILE_ENV_VAR, DIM, 'r')
-        >>> if (sys.version_info > (3, 0)):
-        ...    wv.get_word_index('the')
-        1
-        '''
-        if isinstance(word, int):
-            if word < len(self._fobj.root.vectors):
-                return word
-            else:
-                if raise_exc:
-                    raise UnknownIndex(word)
-                return None
-
-        index = self._get_index(word)
-        get_word = self.get(index, self.WORD)
-        if word == get_word:
-            return index
-        else:
-            if raise_exc == True:
-                raise UnknownWord(word)
-
-    def getmany(self, index, num, type=VECTOR):
-        '''
-        This function returns vectors, occurrences, words
-        based on the type in the range of indices
-        >>> wv = WordVecSpaceFile(DATAFILE_ENV_VAR, DIM, 'r')
-        >>> wv.getmany(0, 2)
-        array([[ 0.0801,  0.0884, -0.0766, -0.0656,  0.0273],
-               [-0.8461,  0.8698,  1.0971, -0.8056,  0.7051]], dtype=float32)
-
-        >>> wv.getmany(0, 2, wv.WORD)
-        ['</s>', 'the']
-        >>> wv.getmany(0, 2, wv.OCCURRENCE)
-        array([      0, 1061396], dtype=uint64)
-        '''
-
-        if index > len(self):
-            raise IndexError
-
-        d = self._fobj.root
-        s, e = index, num
-        if type == self.VECTOR or type == self.OCCURRENCE:
-            return getattr(d, self.VAL_TO_TABLE_NAME[type])[s:e]
-
-        if type == self.WORD:
-            s = d.words_index[index]
-            try:
-                e = d.words_index[num]
-            except IndexError:
-                e = None
-
-            data = d.words[s:e]
-            chars = ''.join([chr(x) for x in data])
-            words_fo = filter(None, chars.split('\x00'))
-
-            if not isinstance(words_fo, list):
-                words = []
-                for word in words_fo:
-                    words.append(word)
-
-                return words
-
-            return words_fo
-
-    def add(self, word, vector, occurrence=0):
-        d = self._fobj.root
-        #word = word.decode('utf8').encode('utf8', 'ignore')
-        #We are storing words as stream of bytes, so we are using null character as a seperater b/w the words.
-        data = [ord(x) for x in word] + [0]
-        index = d.words.nrows
-
-        #Adding data to tables
-        d.vectors.append(vector.reshape(1, self.dim))
-        d.words_index.append([index])
-        d.words.append(data)
-        d.occurrences.append([occurrence])
-
-        if (sys.version_info > (3, 0)):
-            self._tmp_f.write(bytes((word + '\n').encode('utf-8')))
-        else:
-            self._tmp_f.write(word + '\n')
-
-    def _create_words_index(self):
-        with open(self._tmp_f.name, 'r') as inpf:
-            mph = cmph.generate_hash(inpf)
-
-        # Find the range of values given by mph
-        # min is 0. we need to find the max index
-        max_index = 0
-        tmp_obj = open(self._tmp_f.name, 'r')
-
-        for i, word in enumerate(tmp_obj):
-            word = word.strip()
-            if not word: continue
-            max_index = max(mph(word), max_index)
-
-        f = self._fobj
-        d = f.create_carray(f.root, 'cmph_index', tables.UInt64Atom(), (max_index+1,))
-
-        #FIXME Make it better avoid reading file more than once
-        tmp_obj = open(self._tmp_f.name, 'r')
-
-        for i, word in enumerate(tmp_obj):
-            word = word.strip()
-            if not word: continue
-            index = mph(word)
-            d[index] = [i]
-
-        _, tmp_f = tempfile.mkstemp()
-        with open(tmp_f, 'w') as outf:
-            mph.save(outf)
-
-        data = open(tmp_f, 'rb').read()
-        c = f.create_carray(f.root, 'cmph_data', tables.UInt8Atom(), (len(data),))
-        if (sys.version_info > (3, 0)):
-            c[:] = [x for x in data]
-        else:
-            c[:] = [ord(x) for x in data]
-
-        if os.path.exists(tmp_f):
-            os.remove(tmp_f)
-
     def close(self):
-        self._tmp_f.close()
-        if self.mode == 'w':
-            self._create_words_index()
-
-        if os.path.exists(self._tmp_f.name):
-            os.remove(self._tmp_f.name)
-
-        self._fobj.close()
+        self._vectors.flush()
+        self._occurrences.flush()
+        self._wordtoindex.close()
+        self._indextoword.close()

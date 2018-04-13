@@ -6,9 +6,9 @@ from annoy import AnnoyIndex
 from .disk import WordVecSpaceDisk
 from .fileformat import WordVecSpaceFile
 
-# export data file path for test cases
-# export WORDVECSPACE_DATAFILE=/path/to/data
-DATAFILE_ENV_VAR = os.environ.get('WORDVECSPACE_DATAFILE', ' ')
+# export data directory path for test cases
+# export WORDVECSPACE_DATADIR=/path/to/data
+DATAFILE_ENV_VAR = os.environ.get('WORDVECSPACE_DATADIR', '')
 
 check_equal = np.testing.assert_array_almost_equal
 
@@ -18,11 +18,11 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
     METRIC = 'angular'
     ANN_FILE = 'vectors.ann'
 
-    def __init__(self, input_file, n_trees=N_TREES, metric=METRIC, index_fpath=None):
-        super(WordVecSpaceAnnoy, self).__init__(input_file)
+    def __init__(self, input_dir, n_trees=N_TREES, metric=METRIC, index_fpath=None):
+        super(WordVecSpaceAnnoy, self).__init__(input_dir)
         self.ann = AnnoyIndex(self.dim, metric=metric)
 
-        self.ann_file = os.path.join(os.path.dirname(input_file), self.ANN_FILE)
+        self.ann_file = os.path.join(input_dir, self.ANN_FILE)
         if index_fpath:
             self.ann_file = os.path.join(index_fpath, self.ANN_FILE)
 
@@ -42,7 +42,7 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
         '''
         >>> wv = WordVecSpaceAnnoy(DATAFILE_ENV_VAR)
         >>> print(wv.get_distance(250, 'india'))
-        1.5029966831207275
+        1.5112241506576538
         '''
 
         v1 = self.get_word_index(word_or_index1, raise_exc=raise_exc)
@@ -59,7 +59,7 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
 
         >>> wv = WordVecSpaceAnnoy(DATAFILE_ENV_VAR)
         >>> res = wv.get_distances("for", ["to", "for", "india"])
-        >>> check_equal(res, np.array([[  0.8729,  0,  1.3828e+00]], dtype=np.float32), decimal=1)
+        >>> check_equal(res, np.array([[ 0.7407,  0.    ,  1.521 ]], dtype=np.float32), decimal=4)
         '''
 
         r = row_words_or_indices
@@ -101,7 +101,7 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
         '''
         >>> wv = WordVecSpaceAnnoy(DATAFILE_ENV_VAR)
         >>> print(wv.get_nearest(509, 10))
-        [509, 486, 4343, 25578, 6049, 4137, 41883, 18617, 10172, 35704]
+        [509, 16619, 4491, 6866, 8776, 14208, 5998, 2325, 4622, 3546]
         '''
 
         if isinstance(words_or_indices, (tuple, list)):
