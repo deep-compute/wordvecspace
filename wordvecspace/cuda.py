@@ -8,7 +8,7 @@ from .mem import WordVecSpaceMem
 class CudaWordVecSpaceMem(WordVecSpaceMem):
 
     def __init__(self):
-        super(CudaWordVecSpace, self).__init__()
+        super(CudaWordVecSpaceMem, self).__init__(input_dir)
 
         vectors_gpu = to_gpu(self.vectors)
         self.vectors = vectors_gpu
@@ -113,7 +113,7 @@ class CudaWordVecSpaceMem(WordVecSpaceMem):
         return mat_out
 
     def get_distances(self, row_words, col_words=None, raise_exc=False):
-        dvec = super(CudaWordVecSpace, self).get_distances(row_words, col_words, raise_exc)
+        dvec = super(CudaWordVecSpaceMem, self).get_distances(row_words, col_words, raise_exc)
         return dvec.get()
 
 
