@@ -7,7 +7,6 @@ import bottleneck
 
 from .fileformat import WordVecSpaceFile
 from .base import WordVecSpace
-from .exception import UnknownIndex, UnknownWord
 
 np.set_printoptions(precision=4)
 check_equal = np.testing.assert_array_almost_equal
@@ -17,7 +16,7 @@ check_equal = np.testing.assert_array_almost_equal
 DATAFILE_ENV_VAR = os.environ.get('WORDVECSPACE_DATADIR', '')
 
 class WordVecSpaceMem(WordVecSpace):
-    METRIC = 'angular'
+    METRIC = 'cosine'
 
     def __init__(self, input_dir, metric=METRIC):
         '''
@@ -42,22 +41,40 @@ class WordVecSpaceMem(WordVecSpace):
         self.dim = int(self._f.dim)
 
         self.vectors = self._f._vectors['vector']
-        self.words = self._f.getmany(0, self.nvecs, self._f.WORD)
-        self.words = np.array(self.words)
+        #self.words = self._f.getmany(0, self.nvecs, self._f.WORD)
 
         self.word_occurrences = self._f._occurrences['occurrence']
         self.magnitudes = self._f._magnitudes['magnitude']
 
-        self.word_indices = {}
-        for index, w in enumerate(self.words):
-            self.word_indices[w] = int(index)
+        #self.word_indices = {}
+        #for index, w in enumerate(self.words):
+        #    self.word_indices[w] = int(index)
 
     def _make_array(self, shape, dtype):
         return np.ndarray(shape, dtype)
 
+    def _check_index_or_word(self, item):
+        if isinstance(item, str):
+            return self.get_index(item)
+        return item
+
+    def _check_indices_or_words(self, items):
+        w = items
+
+        if len(w) == 0:
+            return []
+
+        if isinstance(w, np.ndarray):
+            assert(w.dtype == np.uint32 and len(w.shape) == 1)
+
+        if isinstance(w, (list, tuple)):
+            if isinstance(w[0], str):
+                return self.get_indices(w)
+        return w
+
     def get_manifest(self):
         manifest_info = open(os.path.join(self.input_dir, 'manifest.json'), 'r')
-        manifest_info = json.loads(manifest_info)
+        manifest_info = json.loads(manifest_info.read())
 
         return manifest_info
 
@@ -72,7 +89,7 @@ class WordVecSpaceMem(WordVecSpace):
 
         return word in self.word_indices
 
-    def get_word_index(self, word):
+    def get_index(self, word):
         '''
         >>> wv = WordVecSpaceMem(DATAFILE_ENV_VAR)
         >>> print(wv.get_word_index("india"))
@@ -86,13 +103,9 @@ class WordVecSpaceMem(WordVecSpace):
         '''
         assert(isinstance(word, str))
 
-        try:
-            return self.word_indices[word]
+        return self.word_indices[word]
 
-        except KeyError:
-            raise UnknownWord(word) from None
-
-    def get_word_indices(self, words):
+    def get_indices(self, words):
         '''
         >>> wv = WordVecSpaceMem(DATAFILE_ENV_VAR)
         >>> print(wv.get_word_indices(['the', 'deepcompute', 'india']))
@@ -101,13 +114,9 @@ class WordVecSpaceMem(WordVecSpace):
 
         assert(isinstance(words, (tuple, list)) and len(words) != 0)
 
-        try:
-            indices = [self.get_word_index(w) for w in words]
-        except KeyError:
-            # FIXME: handle in a better way
-            raise UnknownWord("One of the word is not present")
+        indices = [self.word_indices[w] for w in words]
 
-    def get_word_at_index(self, index):
+    def get_word(self, index):
         '''
         >>> wv = WordVecSpaceMem(DATAFILE_ENV_VAR)
         >>> print(wv.get_word_at_index(509))
@@ -119,35 +128,28 @@ class WordVecSpaceMem(WordVecSpace):
         ...
         wordvecspace.exception.UnknownIndex: "72000"
         '''
+        return self.words[index]
 
-        try:
-            return self.words[index]
-
-        except IndexError:
-            raise UnknownIndex(index)
-
-    # FIXME: can't we just call this `get_words`?
-    def get_word_at_indices(self, indices):
+    def get_words(self, indices):
         '''
         >>> wv = WordVecSpaceMem(DATAFILE_ENV_VAR)
         >>> print(wv.get_word_at_indices([1,509,71190,72000]))
         ['the', 'india', 'reka', None]
         '''
-        return np.take(self.words, indices)
+        return [self.words[i] for i in indices)
 
-    def get_vector_magnitude(self, word_or_index):
+    def get_magnitude(self, word_or_index):
         '''
         >>> wv = WordVecSpaceMem(DATAFILE_ENV_VAR)
         >>> print(wv.get_vector_magnitude("india"))
         1.0
         '''
 
-        if isinstance(word_or_index, str):
-            index = self.get_word_index(word_or_index)
+        index = self._check_index_or_word(word_or_index)
 
-        return self.magnitudes[index] if index is not None else 0.0
+        return self.magnitudes[index]
 
-    def get_vector_magnitudes(self, words_or_indices):
+    def get_magnitudes(self, words_or_indices):
         '''
         >>> wv = WordVecSpaceMem(DATAFILE_ENV_VAR)
         >>> print(wv.get_vector_magnitudes(["hi", "india"]))
@@ -156,17 +158,11 @@ class WordVecSpaceMem(WordVecSpace):
         [0.0, 1.0]
         '''
 
-        w = words_or_indices
+        w = self._check_indices_or_words(words_or_indices)
 
-        if len(w) == 0:
-            return []
+        return self.magnitudes.take(w)
 
-        if isinstance(w[0], str):
-            w = self.get_word_indices(w)
-
-        return np.take(self.magnitudes, w)
-
-    def get_word_occurrence(self, word_or_index):
+    def get_occurrence(self, word_or_index):
         '''
         >>> wv = WordVecSpaceMem(DATAFILE_ENV_VAR)
         >>> print(wv.get_word_occurrence("india"))
@@ -174,14 +170,11 @@ class WordVecSpaceMem(WordVecSpace):
         >>> print(wv.get_word_occurrence("inidia"))
         None
         '''
-        if isinstance(word_or_index, str):
-            index = self.get_word_index(word_or_index)
-        else:
-            index = word_or_index
+        index = self._check_index_or_word(word_or_index)
 
         return self.word_occurrences[index]
 
-    def get_word_occurrences(self, words_or_indices):
+    def get_occurrences(self, words_or_indices):
         '''
         >>> wv = WordVecSpaceMem(DATAFILE_ENV_VAR)
         >>> print(wv.get_word_occurrences(['the', 'india', 'Deepcompute']))
@@ -190,16 +183,11 @@ class WordVecSpaceMem(WordVecSpace):
         [1061396, 3242, 819]
         '''
 
-        w = words_or_indices
-        if len(w) == 0:
-            return []
+        w = self._check_indices_or_words(words_or_indices)
 
-        if isinstance(w[0], str):
-            w = self.get_word_indices(w)
+        return self.word_occurrences.take(w)
 
-        return np.take(self.word_occurrences, w)
-
-    def get_word_vector(self, word_or_index, normalized=False):
+    def get_vector(self, word_or_index, normalized=False):
         '''
         >>> wv = WordVecSpaceMem(DATAFILE_ENV_VAR)
         >>> print(wv.get_word_vector('india'))
@@ -210,17 +198,14 @@ class WordVecSpaceMem(WordVecSpace):
         [-0.7871 -0.2993  0.3233 -0.2864  0.323 ]
         '''
 
-        if isinstance(word_or_index, str):
-            index = self.get_word_index(word_or_index)
-        else:
-            index = word_or_index
+        index = self._check_index_or_word(word_or_index)
 
         if normalized:
-            return np.take(self.vectors, [index], axis=0)
+            return self.vectors[index]
 
-        return np.take(self.vectors, [index], axis=0) * self.magnitudes[index]
+        return self.vectors[index] * self.magnitudes[index]
 
-    def get_word_vectors(self, words_or_indices, normalized=False):
+    def get_vectors(self, words_or_indices, normalized=False):
         '''
         >>> wv = WordVecSpaceMem(DATAFILE_ENV_VAR)
         >>> print(wv.get_word_vectors(["hi", "india"]))
@@ -231,19 +216,15 @@ class WordVecSpaceMem(WordVecSpace):
          [ 0.      0.      0.      0.      0.    ]]
         '''
 
-        w = words_or_indices
+        w = self._check_indices_or_words(words_or_indices)
 
-        if len(w) == 0:
-            return []
+        if normalized:
+            return self.vectors.take(w, axis=0)
 
-        if isinstance(w, np.ndarray):
-            assert(w.dtype == np.uint32 and len(w.shape) == 1)
+        vecs = self.vectors.take(w, axis=0)
+        mags = self.magnitudes.take(w)
 
-        if isinstance(w, (list, tuple)):
-            if isinstance(w[0], str):
-                w = self.get_word_indices(w)
-
-        return np.take(self.vectors, w, axis=0)
+        return np.multiply(vecs.T, mags).T
 
     def get_distance(self, word_or_index1, word_or_index2, metric=None):
         '''
@@ -258,14 +239,14 @@ class WordVecSpaceMem(WordVecSpace):
             metric = self.metric
 
         if metric == 'angular':
-            vec1 = self.get_word_vector(word_or_index1, normalized=True)
-            vec2 = self.get_word_vector(word_or_index2, normalized=True)
+            vec1 = self.get_vector(word_or_index1, normalized=True)
+            vec2 = self.get_vector(word_or_index2, normalized=True)
 
             return 1 - np.dot(vec1, vec2.T)
 
         elif metric == 'euclidean':
-            vec1 = self.get_word_vector(word_or_index1)
-            vec2 = self.get_word_vector(word_or_index2)
+            vec1 = self.get_vector(word_or_index1)
+            vec2 = self.get_vector(word_or_index2)
 
             return distance.euclidean(vec1, vec2)
 
@@ -301,25 +282,25 @@ class WordVecSpaceMem(WordVecSpace):
             if not isinstance(c, (tuple, list, np.ndarray)):
                 c = [c]
 
-        if metric == 'angular':
+        if metric == 'cosine':
             if isinstance(r, np.ndarray) and len(r.shape) == 2 and r.dtype==np.float32:
                 row_vectors = r
             else:
-                row_vectors = self.get_word_vectors(r, normalized=True)
+                row_vectors = self.get_vectors(r, normalized=True)
 
             col_vectors = self.vectors
             if c is not None and len(c):
                 if isinstance(c, np.ndarray) and len(c.shape) == 2 and c.dtype==np.float32:
                     col_vectors = c
                 else:
-                    col_vectors = self.get_word_vectors(c, normalized=True)
+                    col_vectors = self.get_vectors(c, normalized=True)
 
             if len(r) == 1:
                 nvecs, dim = col_vectors.shape
 
                 vec_out = self._make_array((len(col_vectors), len(row_vectors)), dtype=np.float32)
 
-                res = self._perform_sgemv(col_vectors, row_vectors, vec_out, nvecs, dim).T
+                res = self._perform_sgemv(row_vectors, col_vectors, vec_out, nvecs, dim)
 
             else:
                 mat_out = self._make_array((len(row_vectors), len(col_vectors)), dtype=np.float32)
@@ -328,10 +309,10 @@ class WordVecSpaceMem(WordVecSpace):
             return 1 - res
 
         elif metric == 'euclidean':
-            row_vectors = self.get_word_vectors(r)
+            row_vectors = self.get_vectors(r)
 
             if c:
-                col_vectors = self.get_word_vectors(c)
+                col_vectors = self.get_vectors(c)
             else:
                 col_vectors = self.vectors
 
@@ -367,4 +348,4 @@ class WordVecSpaceMem(WordVecSpace):
         if isinstance(v_w_i, (list, tuple)):
             return (ner, dist) if distances else ner
         else:
-            return (ner[0], dist) if distances else ner[0]
+            return (ner[0], dist[0]) if distances else ner[0]

@@ -1,19 +1,6 @@
-import os
 from abc import ABCMeta, abstractmethod
-from ctypes import cdll, c_void_p, c_float
 
-# export blas path if your system has different path for blas
-# $export WORDVECSPACE_BLAS_FPATH=/path/to/blas
-# ex: $export WORDVECSPACE_BLAS_FPATH='/usr/lib/x86_64-linux-gnu/libopenblas.so.0'
-BLAS_LIBRARY_FPATH = os.environ.get('WORDVECSPACE_BLAS_FPATH',\
-        '/usr/lib/libopenblas.so.0')
-cblas = cdll.LoadLibrary(BLAS_LIBRARY_FPATH)
-
-# Some OpenBlas constants
-CblasRowMajor = 101
-CblasNoTrans = 111
-CblasTrans = 112
-incX = incY = 1
+import numpy as np
 
 class WordVecSpace(object):
     __metaclass__ = ABCMeta

@@ -28,7 +28,7 @@ setup(
     ],
     extras_require={
         'cuda': ['pycuda==2017.1.1', 'scikit-cuda==0.5.1'],
-        'service': ['kwikapi[tornado]==0.2.3']
+        'service': ['kwikapi[tornado]==0.2.8']
     },
     package_dir={'wordvecspace': 'wordvecspace'},
     packages=find_packages('.'),
