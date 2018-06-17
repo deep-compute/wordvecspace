@@ -136,7 +136,7 @@ class WordVecSpaceMem(WordVecSpace):
         >>> print(wv.get_word_at_indices([1,509,71190,72000]))
         ['the', 'india', 'reka', None]
         '''
-        return [self.words[i] for i in indices)
+        return [self.words[i] for i in indices]
 
     def get_magnitude(self, word_or_index):
         '''
