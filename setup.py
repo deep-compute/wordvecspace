@@ -24,7 +24,8 @@ setup(
         'diskarray==0.1.6',
         'diskdict==0.2.1',
         'deeputil==0.2.5',
-        'bottleneck==1.2.1'
+        'bottleneck==1.2.1',
+        'pandas==0.20.3',
     ],
     extras_require={
         'cuda': ['pycuda==2017.1.1', 'scikit-cuda==0.5.1'],
