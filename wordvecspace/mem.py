@@ -320,7 +320,7 @@ class WordVecSpaceMem(WordVecSpace):
 
     DEFAULT_K = 512
 
-    def get_nearest(self, v_w_i, k=DEFAULT_K, distances=False, combination=False, metric=None):
+    def get_nearest(self, v_w_i, k=DEFAULT_K, distances=False, combination=False, metric='cosine'):
         '''
         >>> wv = WordVecSpaceMem(DATAFILE_ENV_VAR)
         >>> print(wv.get_nearest("india", 20))
@@ -328,7 +328,6 @@ class WordVecSpaceMem(WordVecSpace):
         >>> print(wv.get_nearest("india", 20, metric='euclidean'))
         [509, 3389, 486, 523, 7125, 16619, 4491, 12191, 6866, 8776, 15232, 14208, 5998, 21916, 5226, 6322, 4343, 6212, 10172, 6186]
         '''
-
         d = self.get_distances(v_w_i, metric=metric)
 
         ner = self._make_array(shape=(len(d), k), dtype=np.uint32)
@@ -336,10 +335,13 @@ class WordVecSpaceMem(WordVecSpace):
 
         for index, p in enumerate(d):
             b_sort = bottleneck.argpartition(p, k)[:k]
-            _sort = np.take(d, b_sort)
-            _sorted = np.argsort(_sort)
-            ner[index] = _sorted
-            dist[index] = np.take(p, _sorted)
+            pr_dist = np.take(d, b_sort)
+
+            a_sorted = np.argsort(pr_dist)
+            indices = np.take(b_sort, a_sorted)
+
+            ner[index] = indices
+            dist[index] = np.take(p, indices)
 
         if combination:
             ner = set(ner[0]).intersection(*ner)
