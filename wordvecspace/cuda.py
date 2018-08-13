@@ -7,7 +7,7 @@ from .mem import WordVecSpaceMem
 
 class CudaWordVecSpaceMem(WordVecSpaceMem):
 
-    def __init__(self):
+    def __init__(self, input_dir):
         super(CudaWordVecSpaceMem, self).__init__(input_dir)
 
         vectors_gpu = to_gpu(self.vectors)

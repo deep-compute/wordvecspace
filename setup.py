@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '0.5.2'
+version = '0.5.3'
 setup(
     name="wordvecspace",
     version=version,
@@ -16,19 +16,20 @@ setup(
     download_url="https://github.com/deep-compute/wordvecspace/tarball/%s" % version,
     license='MIT License',
     install_requires=[
-        'numpy==1.13.1',
-        'pandas==0.20.3',
+        'numpy==1.14.3',
         'numba==0.36.2',
-        'basescript==0.2.1',
+        'basescript==0.2.5',
         'annoy==1.11.4',
         'scipy==1.0.0',
-        'diskarray==0.1.4',
-        'diskdict==0.1',
-        'deeputil==0.2.5'
+        'diskarray==0.1.6',
+        'diskdict==0.2.1',
+        'deeputil==0.2.5',
+        'bottleneck==1.2.1',
+        'pandas==0.20.3',
     ],
     extras_require={
         'cuda': ['pycuda==2017.1.1', 'scikit-cuda==0.5.1'],
-        'service': ['kwikapi[tornado]==0.2']
+        'service': ['kwikapi[tornado]==0.2.8']
     },
     package_dir={'wordvecspace': 'wordvecspace'},
     packages=find_packages('.'),

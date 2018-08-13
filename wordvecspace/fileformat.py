@@ -31,10 +31,10 @@ class WordVecSpaceFile(object):
         self._growby = growby
 
         if self.mode == 'w':
-            self._meta, (self._vectors, self._occurrences, self._wordtoindex, self._indextoword) = self._init_disk()
+            self._meta, (self._vectors, self._occurrences, self._magnitudes, self._wordtoindex, self._indextoword) = self._init_disk()
 
         if self.mode == 'r':
-            self._meta, (self._vectors, self._occurrences, self._wordtoindex, self._indextoword) = self._read_from_disk()
+            self._meta, (self._vectors, self._occurrences, self._magnitudes, self._wordtoindex, self._indextoword) = self._read_from_disk()
             self.dim = self._meta['dim']
 
     def _init_disk(self):
@@ -54,7 +54,7 @@ class WordVecSpaceFile(object):
         return m, self._prepare_word_index_wvspace(m['dim'])
 
     def _prepare_word_index_wvspace(self, dim, initialize=False):
-        v_dtype, o_dtype = self._make_dtype(dim)
+        v_dtype, o_dtype, m_dtype = self._make_dtype(dim)
 
         def J(x): return os.path.join(self.dirpath, x)
 
@@ -62,27 +62,32 @@ class WordVecSpaceFile(object):
 
         v_path = J('vectors')
         o_path = J('occurrences')
+        m_path = J('magnitudes')
 
-        nvecs = noccurs = 0
+        nvecs = noccurs = nmags = 0
         if not initialize:
             nvecs = S(v_path) / np.dtype(v_dtype).itemsize
             noccurs = S(o_path) / np.dtype(o_dtype).itemsize
+            nmags = S(m_path) / np.dtype(m_dtype).itemsize
 
+        v_array = None
         v_array = DiskArray(v_path, shape=(int(nvecs),), dtype=v_dtype, growby=self._growby, log=self.log)
+
         o_array = DiskArray(o_path, shape=(int(noccurs),), dtype=o_dtype, growby=self._growby, log=self.log)
+        m_array = DiskArray(m_path, shape=(int(nmags),), dtype=m_dtype, growby=self._growby, log=self.log)
 
         w_index = DiskDict(J('wordtoindex'))
         i_word = DiskDict(J('indextoword'))
 
-        return v_array, o_array, w_index, i_word
+        return v_array, o_array, m_array, w_index, i_word
 
     def _make_dtype(self, dim):
 
         v_dtype = [('vector', np.float32, dim)]
-
         o_dtype = [('occurrence', np.uint64)]
+        m_dtype = [('magnitude', np.float32)]
 
-        return v_dtype, o_dtype
+        return v_dtype, o_dtype, m_dtype
 
     def _make_array(self, shape, dtype):
         return np.ndarray(shape, dtype)
@@ -96,11 +101,13 @@ class WordVecSpaceFile(object):
 
         return len(self._vectors)
 
-    def add(self, word, occurrence, vector):
-        self._vectors.append((vector))
-        self._occurrences.append((occurrence,))
+    def add(self, word, occurrence, vector, mag):
+        self._vectors.append((vector,))
 
-        pos = len(self._vectors) - 1
+        self._occurrences.append((occurrence,))
+        self._magnitudes.append((mag, ))
+
+        pos = len(self._occurrences) - 1
         self._wordtoindex[word] = pos
         self._indextoword[pos] = word
 
@@ -242,6 +249,13 @@ class WordVecSpaceFile(object):
 
     def close(self):
         self._vectors.flush()
+        self._vectors.close()
+
         self._occurrences.flush()
+        self._occurrences.close()
+
         self._wordtoindex.close()
         self._indextoword.close()
+
+        self._magnitudes.flush()
+        self._magnitudes.close()
