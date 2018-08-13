@@ -3,7 +3,6 @@ import json
 from datetime import datetime
 
 import numpy as np
-from diskarray import DiskArray
 from diskdict import DiskDict
 
 from .fileformat import WordVecSpaceFile
@@ -34,7 +33,7 @@ class GWVecBinReader(object):
             while True:
                 try:
                     ch = f.read(1)
-                    ch = ch.decode('utf-8', 'ignore')
+                    ch = ch.decode('utf-8')
                 except UnicodeDecodeError:
                     ch = ch.decode('unicode-escape')
 
@@ -51,12 +50,12 @@ class GWVecBinReader(object):
 
 
 class GWVecBinWriter(object):
-    def __init__(self, outdir, dim, sharding=False):
+    def __init__(self, outdir, dim):
         # FIXME: don't hardcode growby value here
         self.outdir = outdir
-        self.out = WordVecSpaceFile(self.outdir, dim, sharding=sharding, growby=100000, mode="w")
+        self.out = WordVecSpaceFile(self.outdir, dim, growby=100000, mode="w")
 
-    def write(self, vec, mag, token=None, occur=None):
+    def write(self, token, occur, vec, mag):
         self.out.add(token, occur, vec, mag)
 
     def close(self):
@@ -75,66 +74,44 @@ class GW2VectoWordVecSpaceFile(object):
         self.outdir = outdir
         self.nvecs_per_shard = nvecs_per_shard
         self.shard_name = shard_name
+        self.full_file = None
 
         self.do_sharding = bool(self.nvecs_per_shard)
         if self.do_sharding:
-            self.full_fpath = self.J(self.outdir, full_name)
+            self.full_fpath = os.path.join(self.outdir, full_name)
             os.makedirs(self.full_fpath)
-            self.words = []
-
-            map_itow = self.J(self.full_fpath, 'indextoword')
-            self.indextoword = DiskDict(map_itow)
-
-            map_wtoi = self.J(self.full_fpath, 'wordtoindex')
-            self.wordtoindex = DiskDict(map_wtoi)
-
-            self.magnitudes = DiskArray(self.J(self.full_fpath, "magnitudes"), shape=(int(0),), dtype=np.float32, growby=1000000)
-            self.occurrences = DiskArray(self.J(self.full_fpath, "occurrences"), shape=(int(0),), dtype=np.uint64, growby=1000000)
-
-    def J(self, p1, p2):
-        return os.path.join(p1, p2)
+            map_fpath = os.path.join(self.full_fpath, 'wordtoindex')
+            self.full_file = DiskDict(map_fpath)
 
     def _iter_vecs(self, vfile, vocabfile):
         for token, vec in vfile.iter_vectors():
             vec = np.fromstring(vec, dtype='float32')
             mag = np.linalg.norm(vec)
             vec = vec / mag
-            _line = vocabfile.readline().split(' ')
-
-            token, occur = _line[0], int(_line[1])
+            occur = int(vocabfile.readline().split(' ')[1])
             yield vec, token, mag, occur
 
     def _build_writer(self, vidx, dim):
         if self.do_sharding:
             shard_num = int(vidx / self.nvecs_per_shard)
             shard_name = '{}{}'.format(self.shard_name, shard_num)
-            fpath = self.J(self.outdir, shard_name)
-            return GWVecBinWriter(fpath, dim, sharding=True)
+            fpath = os.path.join(self.outdir, shard_name)
+            return GWVecBinWriter(fpath, dim)
         else:
             return GWVecBinWriter(self.outdir, dim)
 
-    def _create_manifest(self, out_fpath, nvecs, dim, N,
-                        t_occur, in_fpath, m_info={},
-                        full=False, num_vecs=None, nvps=None):
-        if full:
-            mfc = dict(num_shards=N, num_vectors=nvecs,
-                dimension=dim, num_words=t_occur,
-                dt_creation=datetime.utcnow().isoformat(),
-                input_path=in_fpath, manifest_info=m_info,
-                num_vecs_per_shard=self.nvecs_per_shard)
-        else:
-            mfc = dict(num_shards=N, num_vecs_in_shard=nvecs,
-                num_vecs=num_vecs, num_vecs_per_shard=nvps,
+    def _create_manifest(self, out_fpath, nvecs, dim, N, t_occur, in_fpath, m_info={}):
+        mfc = dict(num_shards=N, num_vectors=nvecs,
                 dimension=dim, num_words=t_occur,
                 dt_creation=datetime.utcnow().isoformat(),
                 input_path=in_fpath, manifest_info=m_info)
 
-        fp = open(self.J(out_fpath, 'manifest.json'), 'w')
+        fp = open(os.path.join(out_fpath, 'manifest.json'), 'w')
         fp.write(json.dumps(mfc))
         fp.close()
 
     def _find_manifest_info(self, fpath):
-        m_file = self.J(fpath, 'manifest.json')
+        m_file = os.path.join(fpath, 'manifest.json')
         c = {}
         if os.path.isfile(m_file):
             fp = open(m_file, 'r')
@@ -142,12 +119,12 @@ class GW2VectoWordVecSpaceFile(object):
         return c
 
     def start(self):
-        inp_vec_f = open(self.J(self.in_dir, 'vectors.bin'), 'rb')
+        inp_vec_f = open(os.path.join(self.in_dir, 'vectors.bin'), 'rb')
         inp_vecs = GWVecBinReader(inp_vec_f)
         dim = inp_vecs.dim
         nvecs = inp_vecs.nvecs
 
-        vocab_file = open(self.J(self.in_dir, 'vocab.txt'), 'r', encoding="utf-8", errors='ignore')
+        vocab_file = open(os.path.join(self.in_dir, 'vocab.txt'), 'r', encoding="ISO-8859-1")
         m_info = self._find_manifest_info(self.in_dir)
 
         w = None
@@ -162,8 +139,8 @@ class GW2VectoWordVecSpaceFile(object):
                 if w:
                     count += 1
                     t_occur += s_occur
-                    self._create_manifest(w.outdir, (index-(count*N)), dim, num_shards, s_occur,
-                            self.in_dir, m_info, num_vecs=nvecs, nvps=N)
+                    self._create_manifest(w.outdir, (index-count*N)+1, dim, N, s_occur,
+                            self.in_dir, m_info)
                     w.close()
                     w = None
 
@@ -172,16 +149,9 @@ class GW2VectoWordVecSpaceFile(object):
                 w = self._build_writer(index, dim)
 
             if self.do_sharding:
-                self.wordtoindex[token] = index
-                self.indextoword[index] = token
+                self.full_file[token] = index
 
-                self.magnitudes.append(mag)
-                self.occurrences.append(occur)
-
-                w.write(vec=vec, mag=mag, occur=occur)
-
-            else:
-                w.write(vec=vec, mag=mag, token=token, occur=occur)
+            w.write(token, occur, vec, mag)
 
             s_occur += occur
 
@@ -189,17 +159,9 @@ class GW2VectoWordVecSpaceFile(object):
             w.close()
             count += 1
             t_occur += s_occur
-            self._create_manifest(w.outdir, (index-(count*N)), dim, num_shards, s_occur,
-                    self.in_dir, m_info, num_vecs=nvecs, nvps=N)
+            self._create_manifest(w.outdir, (index-count*N)+1, dim, num_shards, s_occur,
+                    self.in_dir, m_info)
 
         if self.do_sharding:
-            self.wordtoindex.close()
-            self.indextoword.close()
-
-            self.magnitudes.flush()
-            self.magnitudes.close()
-
-            self.occurrences.flush()
-            self.occurrences.close()
-
-            self._create_manifest(self.full_fpath, nvecs, dim, num_shards, t_occur, self.in_dir, m_info, full=True)
+            self._create_manifest(self.full_fpath, nvecs, dim, num_shards, t_occur,
+                    self.in_dir, m_info)
