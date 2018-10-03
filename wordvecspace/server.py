@@ -12,7 +12,6 @@ from .annoy import WordVecSpaceAnnoy
 
 DUMMY_LOG = Dummy()
 
-
 class APIFunctions(object):
     def __init__(self, _type, input_dir, n_trees, metric, index_fpath):
         self._type = _type
@@ -36,7 +35,7 @@ class APIFunctions(object):
 
         return self.wv.does_word_exist(word)
 
-    def get_word_index(self, word: str, raise_exc: bool=False) -> int:
+    def get_index(self, word: str) -> int:
         '''
         Get the index of a word
 
@@ -44,107 +43,104 @@ class APIFunctions(object):
         and it is a valid index (i.e. in range)
         then it will be returned
 
-        get_word_index("india") => 509
-        get_word_index("inidia") => None
+        get_index("india") => 509
+        get_index("inidia") => None
         '''
 
-        return self.wv.get_word_index(word, raise_exc)
+        return self.wv.get_index(word)
 
-    def get_word_indices(self, words: list, raise_exc: bool=False) -> list:
+    def get_indices(self, words: list) -> list:
         '''
         Get indices for given words
 
-        get_word_indices(['the', 'deepcompute', 'india']) => [1, None, 509]
+        get_indices(['the', 'deepcompute', 'india']) => [1, None, 509]
         '''
 
-        return self.wv.get_word_indices(words, raise_exc)
+        return self.wv.get_indices(words)
 
-    def get_word_at_index(self, index: int, raise_exc: bool=False) -> str:
+    def get_word(self, index: int) -> str:
         '''
         Get the word for an index
 
-        get_word_at_index(509) => india
+        get_word(509) => india
         '''
 
-        return self.wv.get_word_at_index(index, raise_exc)
+        return self.wv.get_word(index)
 
-    def get_word_at_indices(self, indices: list, raise_exc: bool=False) -> list:
+    def get_words(self, indices: list) -> list:
         '''
         Get words for given indices
 
-        get_word_at_indices([1,509,71190,72000]) => ['the', 'india', 'reka', None]
+        get_words([1,509,71190,72000]) => ['the', 'india', 'reka', None]
         '''
 
-        return self.wv.get_word_at_indices(indices, raise_exc)
+        return self.wv.get_words(indices)
 
-    def get_word_vector(self, word_or_index: Union[str, int], normalized: bool=False, raise_exc: bool=False) -> list:
-        '''
-        Get vector for a given word or index
-
-        get_word_vector('india') => [-0.7871 -0.2993  0.3233 -0.2864  0.323 ]
-        get_word_vector(509, normalized=True) => [-0.7871 -0.2993  0.3233 -0.2864  0.323 ]
-        get_word_vector('inidia', normalized=True) => [ 0.  0.  0.  0.  0.]
-        '''
-
-        return self.wv.get_word_vector(word_or_index, normalized=normalized, raise_exc=raise_exc).tolist()
-
-    def get_vector_magnitude(self, word_or_index: Union[str, int], raise_exc: bool=False) -> int:
+    def get_magnitude(self, word_or_index: Union[str, int]) -> int:
         '''
         Get magnitude for given word
 
-        get_vector_magnitude("hi") => 1.0
+        get_magnitude("hi") => 1.0
         '''
 
-        return self.wv.get_vector_magnitude(self, word_or_index, raise_exc=raise_exc)
+        return self.wv.get_magnitude(self, word_or_index)
 
-    def get_vector_magnitudes(self, words_or_indices: Union[list, tuple], raise_exc: bool=False) -> list:
+    def get_magnitudes(self, words_or_indices: Union[list, tuple]) -> list:
         '''
         Get vector magnitudes for given words or indices
 
-        get_vector_magnitudes(["hi", "india"]) => [1.0, 1.0]
-        get_vector_magnitudes(["inidia", "india"]) => [0.0, 1.0]
+        get_magnitudes(["hi", "india"]) => [1.0, 1.0]
+        get_magnitudes(["inidia", "india"]) => [0.0, 1.0]
         '''
 
-        return self.wv.get_vector_magnitudes(words_or_indices, raise_exc).tolist()
+        return self.wv.get_magnitudes(words_or_indices).tolist()
 
-    def get_word_occurrence(self, word_or_index: Union[str, int], raise_exc: bool=False) -> Union[int, None]:
+    def get_occurrence(self, word_or_index: Union[str, int]) -> Union[int, None]:
         '''
         Get word occurrence for given word
 
-        get_word_occurrences(5327) => 297
-        get_word_occurrences("india") => 3242
-        get_word_occurrences("inidia") => None
+        get_occurrences(5327) => 297
+        get_occurrences("india") => 3242
+        get_occurrences("inidia") => None
         '''
 
-        occur = self.wv.get_word_occurrence(word_or_index, raise_exc)
+        occur = self.wv.get_occurrence(word_or_index)
 
         return int(occur) if occur else None
 
-    def get_word_occurrences(self, words_or_indices: list, raise_exc: bool=False) -> list:
+    def get_occurrences(self, words_or_indices: list) -> list:
         '''
         Get occurences for a given word or index
 
-        get_word_occurrences(["the", "india", "Deepcompute"]) => [1061396, 3242, None]
+        get_occurrences(["the", "india", "Deepcompute"]) => [1061396, 3242, None]
         '''
 
-        res = self.wv.get_word_occurrences(words_or_indices, raise_exc)
-        for val in res:
-            res[val] = int(res[val])
+        res = self.wv.get_occurrences(words_or_indices).tolist()
 
         return res
 
-    def get_word_vectors(self, words_or_indices: Union[list, tuple], normalized: bool=False, raise_exc: bool=False) -> list:
+    def get_vector(self, word_or_index: Union[str, int], normalized: bool=False) -> list:
+        '''
+        Get vector for a given word or index
+
+        get_vector('india') => [-0.7871 -0.2993  0.3233 -0.2864  0.323 ]
+        get_vector(509, normalized=True) => [-0.7871 -0.2993  0.3233 -0.2864  0.323 ]
+        get_vector('inidia', normalized=True) => [ 0.  0.  0.  0.  0.]
+        '''
+
+        return self.wv.get_vector(word_or_index, normalized=normalized).tolist()
+
+    def get_vectors(self, words_or_indices: Union[list, tuple], normalized: bool=False) -> list:
         '''
         Get vectors for given words or indices
 
-        get_word_vectors(["hi", "india"]) => [[ 0.6342  0.2268 -0.3904  0.0368  0.6266], [-0.7871 -0.2993  0.3233 -0.2864  0.323 ]]
-        get_word_vectors(["hi", "inidia"]) => [[[ 0.6342  0.2268 -0.3904  0.0368  0.6266], [ 0.      0.      0.      0.      0.    ]]
+        get_vectors(["hi", "india"]) => [[ 0.6342  0.2268 -0.3904  0.0368  0.6266], [-0.7871 -0.2993  0.3233 -0.2864  0.323 ]]
+        get_vectors(["hi", "inidia"]) => [[[ 0.6342  0.2268 -0.3904  0.0368  0.6266], [ 0.      0.      0.      0.      0.    ]]
         '''
 
-        return self.wv.get_word_vectors(words_or_indices, normalized=normalized, raise_exc=raise_exc).tolist()
+        return self.wv.get_vectors(words_or_indices, normalized=normalized, raise_exc=raise_exc).tolist()
 
-    def get_distance(self, word_or_index1: Union[str, int], word_or_index2: Union[str, int], metric: Union[str, None]=None, \
-                    raise_exc: bool=False) -> float:
+    def get_distance(self, word_or_index1: Union[str, int], word_or_index2: Union[str, int], metric: str='angular') -> float:
         '''
         Get cosine distance between two words
 
@@ -153,12 +149,11 @@ class APIFunctions(object):
         '''
 
         if self._type == 'mem' or 'disk':
-            return self.wv.get_distance(word_or_index1, word_or_index2, metric=metric, raise_exc=raise_exc)
+            return self.wv.get_distance(word_or_index1, word_or_index2, metric=metric)
 
-        return self.wv.get_distance(word_or_index1, word_or_index2, raise_exc=raise_exc)
+        return self.wv.get_distance(word_or_index1, word_or_index2)
 
-    def get_distances(self, row_words_or_indices: Union[str, int, tuple, list], col_words_or_indices: Union[list, None]=None, \
-                    metric: Union[str, None]=None, raise_exc: bool=False) -> list:
+    def get_distances(self, row_words_or_indices: Union[str, int, tuple, list], col_words_or_indices: Union[list, None]=None, metric: str='angular') -> list:
         '''
         Get distances between given words and all words in the vector space
 
@@ -174,36 +169,26 @@ class APIFunctions(object):
         get_distances(["andhra"]) => [[ 1.5418  0.7153  0.277  ...,  1.1657  1.0774  0.7036]]
         get_distances(["andhra"], metric='euclidean') => [[ 1.756   1.1961  0.7443 ...,  1.5269  1.4679  1.1862]]
         '''
+        c = col_words_or_indices
         if self._type == 'mem' or 'disk':
-            return self.wv.get_distances(row_words_or_indices, col_words_or_indices=col_words_or_indices, metric=metric, raise_exc=raise_exc).tolist()
+            return self.wv.get_distances(row_words_or_indices, col_words_or_indices=c, metric=metric).tolist()
 
-        return self.wv.get_distances(row_words_or_indices, col_words_or_indices=col_words_or_indices, raise_exc=raise_exc).tolist()
+        return self.wv.get_distances(row_words_or_indices, col_words_or_indices=c).tolist()
 
-    def get_nearest(self, words_or_indices: Union[str, int, list, tuple], k: int=512, metric: Union[str, None]=None, \
-                    combination: bool=False, raise_exc: bool=False) -> list:
+    def get_nearest(self, v_w_i: Union[str, int, list, tuple], k: int=512, metric: str='angular', combination: bool=False) -> list:
         '''
-        get_nearest_neighbors("india", 20) => [509, 3389, 486, 523, 7125, 16619, 4491, 12191, 6866, 8776, 15232, 14208, 5998, 21916, 5226, 6322, 4343, 6212, 10172, 6186]
+        get_nearest("india", 20) => [509, 3389, 486, 523, 7125, 16619, 4491, 12191, 6866, 8776, 15232, 14208, 5998, 21916, 5226, 6322, 4343, 6212, 10172, 6186]
         get_nearest(["ram", "india"], 5, metric='euclidean') => [[3844, 16727, 15811, 42731, 41516], [509, 3389, 486, 523, 7125]]
         get_nearest(['india', 'bosnia'], 10, combination=True) => [523, 509, 486]
         '''
+        if self._type == 'mem' or self._type == 'disk':
+            neg = self.wv.get_nearest(v_w_i, k, metric=metric, combination=combination)
+            neg = neg.tolist()
 
-        if self._type == 'mem' or 'disk':
-            neg = self.wv.get_nearest(words_or_indices, k, raise_exc=raise_exc, metric=metric)
-
-            if isinstance(words_or_indices, (tuple, list)) and len(words_or_indices) > 1:
-                for neg_key, item in enumerate(neg):
-                    for item_key, val in enumerate(item):
-                        item[item_key] = int(val)
-                    neg[neg_key] = item
-
-            else:
-                for key, val in enumerate(neg):
-                    neg[key] = int(val)
         else:
-            neg = self.wv.get_nearest(words_or_indices, k, raise_exc=raise_exc)
+            neg = self.wv.get_nearest(v_w_i, k)
 
         return neg
-
 
 class WordVecSpaceServer(object):
     N_TREES = 1

@@ -7,11 +7,11 @@ from .mem import WordVecSpaceMem
 
 class CudaWordVecSpaceMem(WordVecSpaceMem):
 
-    def __init__(self):
-        super(CudaWordVecSpaceMem, self).__init__(input_dir)
+    def __init__(self, input_dir, metric=METRIC):
+        super().__init__(input_dir, metric)
 
-        vectors_gpu = to_gpu(self.vectors)
-        self.vectors = vectors_gpu
+        vectors_gpu = to_gpu(self.vecs)
+        self.vecs = vectors_gpu
 
     def _make_array(self, shape, dtype):
         return GPUArray(shape, dtype)

@@ -1,22 +1,14 @@
 # WordVecSpace
 A high performance pure python module that helps in loading and performing operations on word vector spaces created using Google's Word2vec tool.
 
-This module has ability to load data into memory using `WordVecSpaceMem` and it can also support performing operations on the data which is on the disk using `WordVecSpaceAnnoy` and `WordVecSpaceDisk`.
+This module has ability to the load data into memory using `WordVecSpaceMem` and it can also support performing operations on the data which is on the disk using `WordVecSpaceAnnoy` and `WordVecSpaceDisk`.
 
 ## Installation
-> Prerequisites: Python3.5
+> Prerequisites: >=Python3.5.2
 
 ```bash
-$ sudo apt install libopenblas-base
-$ sudo apt-get install libffi-dev
+$ sudo apt install libopenblas-base # Optional
 $ sudo pip3 install wordvecspace
-```
-> Note: wordvecspace is using `/usr/lib/libopenblas.so.0` as a default path for openblas. If the path of openblas is different in your machine then you have to set the environment variable for that path.
-> Ex: For ubuntu-17.04, open blas path is `/usr/lib/x86_64-linux-gnu/libopenblas.so.0`.
-
-Setting the environment variable for openblas
-```bash
-$ export WORDVECSPACE_BLAS_FPATH=/usr/lib/x86_64-linux-gnu/libopenblas.so.0
 ```
 
 ## Usage
@@ -84,12 +76,12 @@ $ wordvecspace convert /home/user/bindata /home/user/output_dir
 
 ##### Import
 ```python
->>> from wordvecspace import WordVecSpaceMem
+>>> from wordvecspace import WordVecSpaceDisk
 ```
 
 ##### Load data
 ```python
->>> wv = WordVecSpaceMem('/home/user/output_dir')
+>>> wv = WordVecSpaceDisk('/home/user/output_dir')
 ```
 
 ##### Make get_nearest call
@@ -106,33 +98,35 @@ $ wordvecspace convert /home/user/bindata /home/user/output_dir
 
 `WordVecSpaceAnnoy` takes wordvecspace output_dir as input and creates annoy indexes in another file (index file). Using this file `annoy` gives approximate results quickly. For better understanding of `Annoy` please go through this [link](https://github.com/spotify/annoy)
 
-As we have seen how to import `WordVecSpaceMem` above, let us look at `WordVecSpaceAnnoy` and `WordVecSpaceDisk`
+As we have seen how to import `WordVecSpaceDisk` above, let us look at `WordVecSpaceAnnoy` and `WordVecSpaceMem`
 
 ##### Import
 ```python
 >>> from wordvecspace import WordVecSpaceAnnoy
->>> from wordvecspace import WordVecSpaceDisk
+>>> from wordvecspace import WordVecSpaceMem
 ```
 
 ##### Load data
 ```python
->>> wv = WordVecSpaceAnnoy('/home/user/output_dir', n_trees, index_fpath)
+# WordVecSpaceMem
+>>> wv = WordVecSpaceMem('/home/user/output_dir')
+
+# WordVecSpaceAnnoy
+>>> wv = WordVecSpaceAnnoy('/home/user/output_dir', n_trees=2, index_fpath='/tmp')
 
 # n_trees = number of trees(More trees gives a higher precision when querying for get_nearest)
 # index_fpath = path for annoy index file
 
 # n_trees and index_fpath are optional. If those are not given then WordVecSpaceAnnoy uses `1` for n_trees and `/home/user/output_dir` (wordvecspace data directory) directory for index_fpath.
-
->>> wv = WordVecSpaceDisk('/home/user/output_dir')
 ```
 
 ##### Make get_nearest call
 ```python
+>>> wv.get_nearest('india', k=20) (MEM)
+[509, 3389, 486, 523, 7125, 16619, 4491, 12191, 6866, 8776, 15232, 14208, 5998, 21916, 5226, 6322, 4343, 6212, 10172, 6186]
+
 >>> wv.get_nearest('india', k=20) (ANNOY)
 [509, 3389, 16619, 4491, 6866, 8776, 14208, 5998, 21916, 20919, 2325, 4622, 3546, 24149, 5064, 35704, 25578, 15842, 4137, 6499]
-
->>> wv.get_nearest('india', k=20) (DISK)
-[509, 3389, 486, 523, 7125, 16619, 4491, 12191, 6866, 8776, 15232, 14208, 5998, 21916, 5226, 6322, 4343, 6212, 10172, 6186]
 ```
 
 #### Distance calculations
@@ -181,10 +175,10 @@ False
 >>> print(wv.get_word_index("india"))
 509
 
->>> print(wv.get_word_index("inidia"))
+>>> print(wv.get_index("inidia"))
 None
 
->>> print(wv.get_word_index("inidia", raise_exc=True))
+>>> print(wv.get_index("inidia", raise_exc=True))
 Traceback (most recent call last):
   File "/usr/lib/python3.6/code.py", line 91, in runcode
     exec(code, self.locals)
@@ -196,10 +190,10 @@ wordvecspace.exception.UnknownWord: "inidia"
 
 ##### Get the indices of words
 ```python
->>> print(wv.get_word_indices(['the', 'deepcompute', 'india']))
+>>> print(wv.get_indices(['the', 'deepcompute', 'india']))
 [1, None, 509]
 
->>> print(wv.get_word_indices(['the', 'deepcompute', 'india'], raise_exc=True))
+>>> print(wv.get_indices(['the', 'deepcompute', 'india'], raise_exc=True))
 Traceback (most recent call last):
   File "/usr/lib/python3.6/code.py", line 91, in runcode
     exec(code, self.locals)
@@ -214,60 +208,60 @@ wordvecspace.exception.UnknownWord: "deepcompute"
 ##### Get Word at Index
 ```python
 # Get word at Index 509
->>> print(wv.get_word_at_index(509))
+>>> print(wv.get_word(509))
 india
 ```
 
 ##### Get Words at Indices
 ```python
->>> print(wv.get_word_at_indices([1, 509, 71190, 72000]))
+>>> print(wv.get_words([1, 509, 71190, 72000]))
 ['the', 'india', 'reka', None]
 ```
 
 ##### Get occurrence of the word
 ```python
 # Get occurrences of the word "india"
->>> print(wv.get_word_occurrence("india"))
+>>> print(wv.get_occurrence("india"))
 3242
 
 # Get occurrences of the word "inidia"
->>> print(wv.get_word_occurrence("inidia"))
+>>> print(wv.get_occurrence("inidia"))
 None
 ```
 
 ##### Get occurrence of the words
 ```python
 # Get occurrence of the words 'the', 'india' and 'Deepcompute'
->>> print(wv.get_word_occurrences(["the", "india", "Deepcompute"]))
+>>> print(wv.get_occurrences(["the", "india", "Deepcompute"]))
 [1061396, 3242, None]
 ```
 
 ##### Get vector magnitude of the word
 ```python
 # Get magnitude for the word "hi"
->>> print(wv.get_vector_magnitude("hi"))
+>>> print(wv.get_magnitude("hi"))
 1.0
 ```
 
 ##### Get vector magnitude of the words
 ```python
 # Get magnitude for the words "hi" and "india"
->>> print(wv.get_vector_magnitudes(["hi", "india"]))
+>>> print(wv.get_magnitudes(["hi", "india"]))
 [1.0, 1.0]
 ```
 
 ##### Get vector for given word
 ```python
 # Get the word vector for a word india
->>> print(wv.get_word_vector("india"))
+>>> print(wv.get_vector("india"))
 [-0.7871 -0.2993  0.3233 -0.2864  0.323 ]
 
 # Get the unit word vector for a word india
->>> print(wv.get_word_vector("india", normalized=True))
+>>> print(wv.get_vector("india", normalized=True))
 [-0.7871 -0.2993  0.3233 -0.2864  0.323 ]
 
 # Get the word vector for a word inidia.
->>> print(wv.get_word_vector('inidia', raise_exc=True))
+>>> print(wv.get_vector('inidia', raise_exc=True))
 Traceback (most recent call last):
   File "/usr/lib/python3.6/code.py", line 91, in runcode
     exec(code, self.locals)
@@ -279,16 +273,16 @@ Traceback (most recent call last):
 wordvecspace.exception.UnknownWord: "inidia"
 
 # If you don't want to get exception when word is not there, then you can simply discard raise_exc=True
->>> print(wv.get_word_vector('inidia'))
+>>> print(wv.get_vector('inidia'))
 [ 0.  0.  0.  0.  0.]
 ```
 
 ##### Get vector for given words
 ```python
->>> print(wv.get_word_vectors(["hi", "india"]))
+>>> print(wv.get_vectors(["hi", "india"]))
 [[ 0.6342  0.2268 -0.3904  0.0368  0.6266]
  [-0.7871 -0.2993  0.3233 -0.2864  0.323 ]]
->>> print(wv.get_word_vectors(["hi", "inidia"]))
+>>> print(wv.get_vectors(["hi", "inidia"]))
 [[ 0.6342  0.2268 -0.3904  0.0368  0.6266]
  [ 0.      0.      0.      0.      0.    ]]
 ```
@@ -391,33 +385,33 @@ $ curl "http://localhost:8000/api/v1/does_word_exist?word=india"
 ```bash
 $ http://localhost:8000/api/v1/does_word_exist?word=india
 
-$ http://localhost:8000/api/v1/get_word_index?word=india
+$ http://localhost:8000/api/v1/get_index?word=india
 
-$ http://localhost:8000/api/v1/get_word_indices?words=["india", 22, "hello"]
+$ http://localhost:8000/api/v1/get_indices?words=["india", 22, "hello"]
 
-$ http://localhost:8000/api/v1/get_word_at_index?index=509
+$ http://localhost:8000/api/v1/get_index?index=509
 
-$ http://localhost:8000/api/v1/get_word_at_indices?indices=[22, 509]
+$ http://localhost:8000/api/v1/get_indices?indices=[22, 509]
 
-$ http://localhost:8000/api/v1/get_word_vector?word_or_index=509
+$ http://localhost:8000/api/v1/get_vector?word_or_index=509
 
-$ http://localhost:8000/api/v1/get_vector_magnitude?word_or_index=88
+$ http://localhost:8000/api/v1/get_magnitude?word_or_index=88
 
-$ http://localhost:8000/api/v1/get_vector_magnitudes?words_or_indices=[88, "india"]
+$ http://localhost:8000/api/v1/get_magnitudes?words_or_indices=[88, "india"]
 
-$ http://localhost:8000/api/v1/get_word_occurrence?word_or_index=india
+$ http://localhost:8000/api/v1/get_occurrence?word_or_index=india
 
-$ http://localhost:8000/api/v1/get_word_occurrences?words_or_indices=["india", 22]
+$ http://localhost:8000/api/v1/get_occurrences?words_or_indices=["india", 22]
 
-$ http://localhost:8000/api/v1/get_word_vectors?words_or_indices=[1, "india"]
+$ http://localhost:8000/api/v1/get_vectors?words_or_indices=[1, "india"]
 
 $ http://localhost:8000/api/v1/get_distance?word_or_index1=ap&word_or_index2=india
 
 $ http://localhost:8000/api/v1/get_distances?row_words_or_indices=["india", 33]
 
-$ http://localhost:8000/api/v1/get_nearest?words_or_indices=india&k=100
+$ http://localhost:8000/api/v1/get_nearest?v_w_i=india&k=100
 
-$ http://localhost:8000/api/v1/get_nearest?words_or_indices=india&k=100&metric=euclidean
+$ http://localhost:8000/api/v1/get_nearest?v_w_i=india&k=100&metric=euclidean
 ```
 
 > To see all API methods of wordvecspace please run http://localhost:8000/api/v1/apidoc

@@ -1,8 +1,9 @@
 from setuptools import setup, find_packages
 
-version = '0.5.2'
+version = '0.5.3'
 setup(
     name="wordvecspace",
+    python_requires='>3.5.1',
     version=version,
     description="A high performance pure python module that helps in"
                 " loading and performing operations on word vector spaces"
@@ -16,19 +17,16 @@ setup(
     download_url="https://github.com/deep-compute/wordvecspace/tarball/%s" % version,
     license='MIT License',
     install_requires=[
-        'numpy==1.13.1',
-        'pandas==0.20.3',
-        'numba==0.36.2',
-        'basescript==0.2.1',
         'annoy==1.11.4',
         'scipy==1.0.0',
-        'diskarray==0.1.4',
-        'diskdict==0.1',
-        'deeputil==0.2.5'
+        'diskarray==0.1.8',
+        'diskdict==0.2.2',
+        'deeputil==0.2.5',
+        'bottleneck==1.2.1',
     ],
     extras_require={
-        'cuda': ['pycuda==2017.1.1', 'scikit-cuda==0.5.1'],
-        'service': ['kwikapi[tornado]==0.2']
+        'cuda': ['pycuda==2018.1.1', 'scikit-cuda==0.5.1'],
+        'service': ['kwikapi[tornado]==0.4.5']
     },
     package_dir={'wordvecspace': 'wordvecspace'},
     packages=find_packages('.'),
