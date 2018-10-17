@@ -4,7 +4,7 @@ A high performance pure python module that helps in loading and performing opera
 This module has ability to the load data into memory using `WordVecSpaceMem` and it can also support performing operations on the data which is on the disk using `WordVecSpaceAnnoy` and                   `WordVecSpaceDisk`.
 
 ## Installation
-> Prerequisites: Python3.5.2
+> Prerequisites: >=Python3.5.2
 
 ```bash
 
@@ -23,7 +23,7 @@ word vector space data. Here are two ways to get that.
 
 ```bash
 $ wget https://s3.amazonaws.com/deepcompute-public-data/wordvecspace/test_data-0_5_4.tgz
-$ tar test_data-0_5_4.tgz
+$ tar zxvf test_data-0_5_4.tgz
 ```
 
 > NOTE: We got this data by downloading the `text8` corpus
@@ -42,7 +42,7 @@ $ git clone https://github.com/tmikolov/word2vec.git
 
 # 1. Navigate to the folder word2vec
 # 2. open demo-word.sh for editing
-# 3. Edit the command "time ./word2vec -train text8 -output vectors.bin -cbow 1 -size 200 -window 8 -negative 25 -hs 0 -sample 1e-4 -threads 20 -binary 1 -iter 15" ----to----> "time ./word2vec -train     text8 -output vectors.bin -cbow 1 -size 5 -window 8 -negative 25 -hs 0 -sample 1e-4 -threads 20 -binary 1 -save-vocab vocab.txt -iter 15" to get vocab.txt file also as output.
+# 3. Edit the command "time ./word2vec -train text8 -output vectors.bin -cbow 1 -size 200 -window 8 -negative 25 -hs 0 -sample 1e-4 -threads 20 -binary 1 -iter 15" ----to----> "time ./word2vec -train text8 -output vectors.bin -cbow 1 -size 5 -window 8 -negative 25 -hs 0 -sample 1e-4 -threads 20 -binary 1 -save-vocab vocab.txt -iter 15" to get vocab.txt file also as output.
 # 4. Run demo-word.sh
 
 $ chmod +x demo-word.sh
@@ -97,7 +97,7 @@ $ wordvecspace convert /home/user/bindata /home/user/output_dir
 
 `WordVecSpaceMem` and `WordVecSpaceDisk` is a bruteforce algorithm which compares given word with all the words in the vector space
 
-`WordVecSpaceAnnoy` takes wordvecspace output_dir as input and creates annoy indexes in another file (index file). Using this file `annoy` gives approximate results quickly. For better understanding of   `Annoy` please go through this [link](https://github.com/spotify/annoy)
+`WordVecSpaceAnnoy` takes wordvecspace output_dir as input and creates annoy indexes in another file (index file). Using this file `annoy` gives approximate results quickly. For better understanding of `Annoy` please go through this [link](https://github.com/spotify/annoy)
 
 As we have seen how to import `WordVecSpaceDisk` above, let us look at `WordVecSpaceAnnoy` and `WordVecSpaceMem`
 
