@@ -2,13 +2,11 @@ language: python
 python:
 - '3.5'
 before_install:
-    - wget 'https://s3.amazonaws.com/deepcompute-public-data/wordvecspace/test_data-0_5_4.tgz'
-  && tar xvzf test_data-0_5_4.tgz
+- wget 'https://s3.amazonaws.com/deepcompute-public-data/wordvecspace/test_data-0_5_4.tgz' && tar xvzf test_data-0_5_4.tgz
 - export WORDVECSPACE_DATADIR='test_data-0_5_4.tgz'
 install:
 - sudo apt update
 - pip install .[service]
-- sudo apt install libopenblas-base
 script:
 - echo "No tests for this release"
 deploy:
