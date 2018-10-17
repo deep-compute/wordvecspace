@@ -16,8 +16,10 @@ check_equal = np.testing.assert_array_almost_equal
 # $export WORDVECSPACE_DATADIR=/path/to/data/
 DATAFILE_ENV_VAR = os.environ.get('WORDVECSPACE_DATADIR', '')
 
+
 class WordVecSpace(WordVecSpaceBase):
     METRIC = 'cosine'
+    DEFAULT_K = 512
 
     def __init__(self, input_dir: str, metric: str=METRIC) -> None:
         self._f = WordVecSpaceFile(input_dir, mode='r')
@@ -40,6 +42,7 @@ class WordVecSpace(WordVecSpaceBase):
     def _check_index_or_word(self, item):
         if isinstance(item, str):
             return self.get_index(item)
+
         return item
 
     def _check_indices_or_words(self, items):
@@ -54,14 +57,17 @@ class WordVecSpace(WordVecSpaceBase):
         if isinstance(w, (list, tuple)):
             if isinstance(w[0], str):
                 return self.get_indices(w)
+
         return w
 
     def _check_vec(self, v, normalised=False):
-        if isinstance(v, np.ndarray) and len(v.shape) == 2 and v.dtype==np.float32:
+        if isinstance(v, np.ndarray) and len(v.shape) == 2 and v.dtype == np.float32:
             if normalised:
                 m = np.linalg.norm(v)
                 return v / m
+
             return v
+
         else:
             if isinstance(v, (list, tuple)):
                 return self.get_vectors(v, normalized=normalised)
@@ -133,8 +139,8 @@ class WordVecSpace(WordVecSpaceBase):
 
         return np.multiply(vecs.T, mags).T
 
-    def get_distance(self, word_or_index1: Union[int, str],\
-                    word_or_index2: Union[int, str], metric: str='cosine') -> float:
+    def get_distance(self, word_or_index1: Union[int, str],
+                     word_or_index2: Union[int, str], metric: str='cosine') -> float:
 
         w1 = word_or_index1
         w2 = word_or_index2
@@ -167,8 +173,10 @@ class WordVecSpace(WordVecSpaceBase):
 
         return m, r, c
 
-    def get_distances(self, row_words_or_indices: Union[list, np.ndarray],\
-                    col_words_or_indices: Union[list, None, np.ndarray]=None, metric=None) -> np.ndarray:
+    def get_distances(self,
+                    row_words_or_indices: Union[list, np.ndarray],
+                    col_words_or_indices: Union[list, None, np.ndarray]=None,
+                    metric=None) -> np.ndarray:
 
         r = row_words_or_indices
         c = col_words_or_indices
@@ -186,7 +194,6 @@ class WordVecSpace(WordVecSpaceBase):
                 nvecs, dim = col_vectors.shape
 
                 vec_out = self._make_array((len(col_vectors), len(row_vectors)), dtype=np.float32)
-
                 res = self._perform_sgemv(row_vectors, col_vectors, vec_out, nvecs, dim)
 
             else:
@@ -205,33 +212,52 @@ class WordVecSpace(WordVecSpaceBase):
 
             return distance.cdist(row_vectors, col_vectors, 'euclidean')
 
-    DEFAULT_K = 512
-
-    def get_nearest(self, v_w_i: list, k: int=DEFAULT_K,\
-                    distances: bool=False, combination: bool=False,\
-                    metric: str='cosine') -> np.ndarray:
-
-        d = self.get_distances(v_w_i, metric=metric)
+    def _nearest_sorting(self, d, k):
 
         ner = self._make_array(shape=(len(d), k), dtype=np.uint32)
         dist = self._make_array(shape=(len(d), k), dtype=np.float32)
 
         for index, p in enumerate(d):
+            # FIXME: better variable name for b_sort
             b_sort = bottleneck.argpartition(p, k)[:k]
-            pr_dist = np.take(d, b_sort)
+            pr_dist = np.take(p, b_sort)
 
+            # FIXME: better variable name for a_sorted
             a_sorted = np.argsort(pr_dist)
             indices = np.take(b_sort, a_sorted)
 
             ner[index] = indices
             dist[index] = np.take(p, indices)
 
-        if combination:
-            ner = set(ner[0]).intersection(*ner)
-            return (ner, dist) if distances else ner
+        return ner, dist
 
-        if isinstance(v_w_i, (list, tuple)) or \
-            isinstance(v_w_i, np.ndarray) and len(v_w_i) > 1:
-            return (ner, dist) if distances else ner
+    def get_nearest(self, v_w_i: list,
+                    k: int=DEFAULT_K,
+                    distances: bool=False,
+                    combination: bool=False,
+                    weights: list=None,
+                    metric: str='cosine') -> np.ndarray:
+
+        d = self.get_distances(v_w_i, metric=metric)
+
+        if not weights:
+            weights = np.ones(len(v_w_i))
+
+        if combination and len(weights) == len(v_w_i):
+            weights = np.array(weights)
+            w_d = np.dot(weights, d)
+            nearest_indices, dist = self._nearest_sorting(w_d.reshape(1, len(w_d)), k)
+
+            if distances:
+                return nearest_indices, dist
+
+            else:
+                return nearest_indices
+
+        nearest_indices, dist = self._nearest_sorting(d, k)
+
+        if isinstance(v_w_i, (list, tuple)) or isinstance(v_w_i, np.ndarray) and len(v_w_i) > 1:
+            return (nearest_indices, dist) if distances else nearest_indices
+
         else:
-            return (ner[0], dist[0]) if distances else ner[0]
+            return (nearest_indices[0], dist[0]) if distances else nearest_indices[0]
