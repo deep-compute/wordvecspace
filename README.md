@@ -1,12 +1,13 @@
 # WordVecSpace
 A high performance pure python module that helps in loading and performing operations on word vector spaces created using Google's Word2vec tool.
 
-This module has ability to the load data into memory using `WordVecSpaceMem` and it can also support performing operations on the data which is on the disk using `WordVecSpaceAnnoy` and `WordVecSpaceDisk`.
+This module has ability to the load data into memory using `WordVecSpaceMem` and it can also support performing operations on the data which is on the disk using `WordVecSpaceAnnoy` and                   `WordVecSpaceDisk`.
 
 ## Installation
 > Prerequisites: >=Python3.5.2
 
 ```bash
+
 $ sudo apt install libopenblas-base # Optional
 $ sudo pip3 install wordvecspace
 ```
@@ -21,8 +22,8 @@ word vector space data. Here are two ways to get that.
 #### Download pre-computed sample data
 
 ```bash
-$ wget https://s3.amazonaws.com/deepcompute-public-data/wordvecspace/small_test_data.tgz
-$ tar zxvf small_test_data.tgz
+$ wget https://s3.amazonaws.com/deepcompute-public-data/wordvecspace/test_data-0_5_4.tgz
+$ tar zxvf test_data-0_5_4.tgz
 ```
 
 > NOTE: We got this data by downloading the `text8` corpus
@@ -193,6 +194,7 @@ wordvecspace.exception.UnknownWord: "inidia"
 >>> print(wv.get_indices(['the', 'deepcompute', 'india']))
 [1, None, 509]
 
+
 >>> print(wv.get_indices(['the', 'deepcompute', 'india'], raise_exc=True))
 Traceback (most recent call last):
   File "/usr/lib/python3.6/code.py", line 91, in runcode
@@ -342,8 +344,33 @@ wordvecspace.exception.UnknownWord: "inidia"
 [[3844, 16727, 15811, 42731, 41516], [509, 3389, 486, 523, 7125]]
 
 # Get common nearest neighbors among given words
->>> print(wv.get_nearest(['india', 'bosnia'], 10, combination=True))
-[523, 509, 486]
+>>> wv.get_words(wv.get_nearest(['india', 'pakistan'], 10)[0])
+['india', 'indian', 'delhi', 'subcontinent', 'hyderabad', 'pradesh', 'pakistan', 'gujarat', 'bombay', 'chhattisgarh']
+>>> wv.get_words(wv.get_nearest(['india', 'pakistan'], 10)[1])
+['pakistan', 'pakistani', 'india', 'bangladesh', 'peshawar', 'afghanistan', 'baluchistan', 'balochistan', 'kashmir', 'islamabad']
+>>> wv.get_words(wv.get_nearest(['india', 'pakistan'], 10, combination=True)[0])
+['pakistan', 'india', 'indian', 'bangladesh', 'pakistani', 'subcontinent', 'shimla', 'delhi', 'punjab', 'ladakh']
+>>> wv.get_words(wv.get_nearest(['india', 'pakistan'], 10, combination=True, weights=[1, 0])[0])
+['india', 'indian', 'delhi', 'subcontinent', 'hyderabad', 'pradesh', 'pakistan', 'gujarat', 'bombay', 'chhattisgarh']
+>>> wv.get_words(wv.get_nearest(['india', 'pakistan'], 10, combination=True, weights=[0, 1])[0])
+['pakistan', 'pakistani', 'india', 'bangladesh', 'peshawar', 'afghanistan', 'baluchistan', 'balochistan', 'kashmir', 'islamabad']
+>>> wv.get_words(wv.get_nearest(['india', 'pakistan'], 10, combination=True, weights=[0.7, 0.3])[0])
+['india', 'pakistan', 'indian', 'subcontinent', 'delhi', 'bangladesh', 'hyderabad', 'shimla', 'punjab', 'bengal']
+>>> wv.get_words(wv.get_nearest(['india', 'pakistan'], 10, combination=True, weights=[0.3, 0.7])[0])
+['pakistan', 'india', 'pakistani', 'bangladesh', 'subcontinent', 'indian', 'shimla', 'punjab', 'kashmir', 'ladakh']
+
+# Get nearest with vector(s)
+>>> wv.get_words(wv.get_nearest(wv.get_vector('india').reshape(1, wv.dim), k=5))
+['india', 'indian', 'subcontinent', 'bombay', 'bengal']
+>>> wv.get_words(wv.get_nearest(wv.get_vectors(['india', 'pakistan']), k=5)[0])
+['india', 'indian', 'subcontinent', 'bombay', 'bengal']
+>>> wv.get_words(wv.get_nearest(wv.get_vectors(['india', 'pakistan']), k=5)[1])
+['pakistan', 'pakistani', 'kargil', 'afghanistan', 'bangladesh']
+>>> wv.get_words(wv.get_nearest(wv.get_vectors(['india', 'pakistan']), k=5, combination=True)[0])
+['india', 'pakistan', 'indian', 'pakistani', 'subcontinent']
+>>> wv.get_words(wv.get_nearest(wv.get_vectors(['india', 'pakistan']), k=5, combination=True, weights=[0.4, 0.6])[0])
+['pakistan', 'india', 'pakistani', 'kargil', 'indian']
+
 ```
 
 ## Service
