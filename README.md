@@ -344,20 +344,16 @@ wordvecspace.exception.UnknownWord: "inidia"
 [[3844, 16727, 15811, 42731, 41516], [509, 3389, 486, 523, 7125]]
 
 # Get common nearest neighbors among given words
->>> wv.get_words(wv.get_nearest(['india', 'pakistan'], 10)[0])
-['india', 'indian', 'delhi', 'subcontinent', 'hyderabad', 'pradesh', 'pakistan', 'gujarat', 'bombay', 'chhattisgarh']
->>> wv.get_words(wv.get_nearest(['india', 'pakistan'], 10)[1])
-['pakistan', 'pakistani', 'india', 'bangladesh', 'peshawar', 'afghanistan', 'baluchistan', 'balochistan', 'kashmir', 'islamabad']
->>> wv.get_words(wv.get_nearest(['india', 'pakistan'], 10, combination=True)[0])
-['pakistan', 'india', 'indian', 'bangladesh', 'pakistani', 'subcontinent', 'shimla', 'delhi', 'punjab', 'ladakh']
->>> wv.get_words(wv.get_nearest(['india', 'pakistan'], 10, combination=True, weights=[1, 0])[0])
-['india', 'indian', 'delhi', 'subcontinent', 'hyderabad', 'pradesh', 'pakistan', 'gujarat', 'bombay', 'chhattisgarh']
->>> wv.get_words(wv.get_nearest(['india', 'pakistan'], 10, combination=True, weights=[0, 1])[0])
-['pakistan', 'pakistani', 'india', 'bangladesh', 'peshawar', 'afghanistan', 'baluchistan', 'balochistan', 'kashmir', 'islamabad']
->>> wv.get_words(wv.get_nearest(['india', 'pakistan'], 10, combination=True, weights=[0.7, 0.3])[0])
-['india', 'pakistan', 'indian', 'subcontinent', 'delhi', 'bangladesh', 'hyderabad', 'shimla', 'punjab', 'bengal']
->>> wv.get_words(wv.get_nearest(['india', 'pakistan'], 10, combination=True, weights=[0.3, 0.7])[0])
-['pakistan', 'india', 'pakistani', 'bangladesh', 'subcontinent', 'indian', 'shimla', 'punjab', 'kashmir', 'ladakh']
+
+>>> print(wv.get_words(wv.get_nearest(['india', 'pakistan'], k=5)[0]))
+['india', 'morocco', 'china', 'herzegovina', 'republika']
+>>> print(wv.get_words(wv.get_nearest(['india', 'pakistan'], k=50, combination=True, combination_method='vec_intersect')))
+['sudan', 'capital', 'mauritian', 'cyprus', 'heartland']
+>>> print(wv.get_words(wv.get_nearest(['india', 'pakistan'], k=5, weights=[0.9, 0.1], combination=True, combination_method='vectors')[0]))
+['india', 'morocco', 'china', 'herzegovina', 'republika']
+>>> print(wv.get_words(wv.get_nearest(['india', 'pakistan'], k=5, weights=[0.9, 0.1], combination=True, combination_method='distances')[0]))
+['india', 'china', 'morocco', 'herzegovina', 'croatia']
+
 
 # Get nearest with vector(s)
 >>> wv.get_words(wv.get_nearest(wv.get_vector('india').reshape(1, wv.dim), k=5))
@@ -366,9 +362,9 @@ wordvecspace.exception.UnknownWord: "inidia"
 ['india', 'indian', 'subcontinent', 'bombay', 'bengal']
 >>> wv.get_words(wv.get_nearest(wv.get_vectors(['india', 'pakistan']), k=5)[1])
 ['pakistan', 'pakistani', 'kargil', 'afghanistan', 'bangladesh']
->>> wv.get_words(wv.get_nearest(wv.get_vectors(['india', 'pakistan']), k=5, combination=True)[0])
+>>> wv.get_words(wv.get_nearest(wv.get_vectors(['india', 'pakistan']), k=5)[0])
 ['india', 'pakistan', 'indian', 'pakistani', 'subcontinent']
->>> wv.get_words(wv.get_nearest(wv.get_vectors(['india', 'pakistan']), k=5, combination=True, weights=[0.4, 0.6])[0])
+>>> wv.get_words(wv.get_nearest(wv.get_vectors(['india', 'pakistan']), k=5)[0])
 ['pakistan', 'india', 'pakistani', 'kargil', 'indian']
 
 ```

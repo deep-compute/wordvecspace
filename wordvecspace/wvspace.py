@@ -173,14 +173,12 @@ class WordVecSpace(WordVecSpaceBase):
 
         return m, r, c
 
-    def get_distances(self,
-                    row_words_or_indices: Union[list, np.ndarray],
-                    col_words_or_indices: Union[list, None, np.ndarray]=None,
-                    metric=None) -> np.ndarray:
+    def get_distances(self, row_words_or_indices: Union[list, np.ndarray],
+                      col_words_or_indices: Union[list, None, np.ndarray]=None,
+                      metric=None) -> np.ndarray:
 
         r = row_words_or_indices
         c = col_words_or_indices
-
         metric, r, c = self._check_r_and_c(r, c, metric)
 
         if metric == 'cosine' or 'angular':
@@ -213,7 +211,6 @@ class WordVecSpace(WordVecSpaceBase):
             return distance.cdist(row_vectors, col_vectors, 'euclidean')
 
     def _nearest_sorting(self, d, k):
-
         ner = self._make_array(shape=(len(d), k), dtype=np.uint32)
         dist = self._make_array(shape=(len(d), k), dtype=np.float32)
 
@@ -231,33 +228,65 @@ class WordVecSpace(WordVecSpaceBase):
 
         return ner, dist
 
-    def get_nearest(self, v_w_i: list,
-                    k: int=DEFAULT_K,
-                    distances: bool=False,
+    def get_nearest(self, v_w_i: list, k: int=DEFAULT_K,
+                    metric: str='cosine', include_distances: bool=False,
                     combination: bool=False,
-                    weights: list=None,
-                    metric: str='cosine') -> np.ndarray:
+                    combination_method: str='distance',
+                    weights: list=None) -> np.ndarray:
+        import pdb; pdb.set_trace()
 
-        d = self.get_distances(v_w_i, metric=metric)
+        if not combination:
+            return self._get_brute(v_w_i, k, metric,
+                                   combination, include_distances)
+
+        if combination and combination_method == 'vec_intersect':
+            return self._get_brute(v_w_i, k, metric,
+                                   combination, include_distances)
+
+        if combination and combination_method == 'distance':
+            return self._get_weighted_brute(v_w_i, k, metric,
+                                            weights, include_distances)
+
+        if combination and combination_method == 'vector' and len(v_w_i) > 1:
+            return self._get_resultant_vector_nearest(v_w_i, k, metric,
+                                                      weights, include_distances)
+
+    def _get_resultant_vector_nearest(self, v_w_i, k, metric, weights, include_distances):
+        v = self._check_vec(v_w_i)
 
         if not weights:
             weights = np.ones(len(v_w_i))
-
-        if combination and len(weights) == len(v_w_i):
+        else:
             weights = np.array(weights)
-            w_d = np.dot(weights, d)
-            nearest_indices, dist = self._nearest_sorting(w_d.reshape(1, len(w_d)), k)
 
-            if distances:
-                return nearest_indices, dist
+        resultant_vec = (v * weights[:, None]).sum(axis=0, dtype=np.float32).reshape(1, self.dim)
 
-            else:
-                return nearest_indices
+        d = self.get_distances(resultant_vec, metric=metric)
+        nearest_indices, distances = self._nearest_sorting(d, k)
 
-        nearest_indices, dist = self._nearest_sorting(d, k)
+        return (nearest_indices, distances) if include_distances else nearest_indices
+
+    def _get_weighted_brute(self, v_w_i, k, metric, weights, include_distances):
+        d = self.get_distances(v_w_i, metric=metric)
+        if not weights:
+            weights = np.ones(len(v_w_i))
+        else:
+            weights = np.array(weights)
+
+        w_d = np.dot(weights, d)
+        nearest_indices, distances = self._nearest_sorting(w_d.reshape(1, len(w_d)), k)
+
+        return (nearest_indices, distances) if include_distances else nearest_indices
+
+    def _get_brute(self, v_w_i, k, metric, combination, include_distances):
+        d = self.get_distances(v_w_i, metric=metric)
+        nearest_indices, distances = self._nearest_sorting(d, k)
+
+        if combination:
+            ner = list(set(nearest_indices[0]).intersection(*nearest_indices))
+            return (ner, distances) if include_distances else ner
 
         if isinstance(v_w_i, (list, tuple)) or isinstance(v_w_i, np.ndarray) and len(v_w_i) > 1:
-            return (nearest_indices, dist) if distances else nearest_indices
-
+            return (nearest_indices, dist) if include_distances else nearest_indices
         else:
-            return (nearest_indices[0], dist[0]) if distances else nearest_indices[0]
+            return (nearest_indices[0], dist[0]) if include_distances else nearest_indices[0]

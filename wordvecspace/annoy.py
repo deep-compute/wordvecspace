@@ -17,16 +17,19 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
     N_TREES = 1
     METRIC = 'angular'
     ANN_FILE = 'vectors.ann'
+    DEFAULT_K = 512
 
     def __init__(self, input_dir, n_trees=N_TREES, metric=METRIC, index_fpath=None):
         super().__init__(input_dir)
         self.ann = AnnoyIndex(self.dim, metric=metric)
 
         self.ann_file = self.J(input_dir, self.ANN_FILE)
+
         if index_fpath:
             self.ann_file = self.J(index_fpath, self.ANN_FILE)
 
-        self._create_annoy_file(n_trees)
+        if not os.path.exists(self.ann_file):
+            self._create_annoy_file(n_trees)
 
         self.ann.load(self.ann_file)
 
@@ -85,23 +88,48 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
 
         return mat
 
-    DEFAULT_K = 512
-    def get_nearest(self, v_w_i: Union[int, str, np.ndarray], k: int=DEFAULT_K,\
-                    combination: bool=False):
-        if isinstance(v_w_i, (tuple, list)):
-            res = []
-            for word in v_w_i:
-                index = self._check_index_or_word(word)
+    def get_nearest(self, v_w_i: Union[int, str, list], k: int=DEFAULT_K,
+                    metric: str=METRIC, include_distances: bool=False, combination: bool=False,
+                    combination_method: str='vec_intersect', weights: list=None) -> np.ndarray:
 
-                if index:
-                    res.append(self.ann.get_nns_by_item(index, k)) # will find the k nearest neighbors
+        if not combination or combination_method == 'vec_intersect':
+            return self._get_brute(v_w_i, k, combination, include_distances)
 
-            # will find common nearest neighbors among given words
-            if combination and len(v_w_i) > 1:
+        if combination and combination_method == 'vector' and len(v_w_i) > 1:
+            return self._get_composite_vector_nearest(v_w_i, k, weights, metric, include_distances)
+
+    def _get_composite_vector_nearest(self, v_w_i, k, weights, metric, include_distances):
+        v = self._check_vec(v_w_i)
+
+        res = None
+        if not weights:
+            weights = np.ones(len(v_w_i))
+        else:
+            weights = np.array(weights)
+
+        if isinstance(v, (list, np.ndarray)):
+            composite_vec = (v * weights[:, None]).sum(axis=0)
+            res = self.ann.get_nns_by_vector(composite_vec, k, include_distances=include_distances)
+
+        return res
+
+    # FIXME: add include_distances for list of vectors
+    def _get_brute(self, v_w_i, k, combination, include_distances):
+
+        if not isinstance(v_w_i, (tuple, list, np.ndarray)):
+            index = self._check_index_or_word(v_w_i)
+
+            return self.ann.get_nns_by_item(index, k, include_distances=include_distances)
+        else:
+            res = list()
+            for item in v_w_i:
+                if isinstance(item, (int, str)):
+                    index = self._check_index_or_word(item)
+                    res.append(self.ann.get_nns_by_item(index, k))
+                else:
+                    res.append(self.ann.get_nns_by_vector(item, k))
+
+            if combination:
                 return list(set(res[0]).intersection(*res))
-
-            return res
-
-        index = self._check_index_or_word(v_w_i)
-
-        return self.ann.get_nns_by_item(index, k)
+            else:
+                return res

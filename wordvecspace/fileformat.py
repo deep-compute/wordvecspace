@@ -57,7 +57,6 @@ class WordVecSpaceFile(object):
                             growby=self._growby, log=self.log)
         o_array = DiskArray(o_path, dtype='uint64', mode=mode,
                             growby=self._growby, log=self.log)
-
         if not initialize:
             v_array = DiskArray(v_path, dtype='float32', mode=mode,
                                 growby=self._growby, log=self.log)
