@@ -96,9 +96,9 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
             return self._get_brute(v_w_i, k, combination, include_distances)
 
         if combination and combination_method == 'vector':
-            return self._get_composite_vector_nearest(v_w_i, k, weights, metric, include_distances)
+            return self._get_resultant_vector_nearest(v_w_i, k, weights, metric, include_distances)
 
-    def _get_composite_vector_nearest(self, v_w_i, k, weights, metric, include_distances):
+    def _get_resultant_vector_nearest(self, v_w_i, k, weights, metric, include_distances):
         v = self._check_vec(v_w_i)
 
         res = None
@@ -108,8 +108,8 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
             weights = np.array(weights)
 
         if isinstance(v, (list, np.ndarray)):
-            composite_vec = (v * weights[:, None]).sum(axis=0)
-            res = self.ann.get_nns_by_vector(composite_vec, k, include_distances=include_distances)
+            resultant_vec = (v * weights[:, None]).sum(axis=0)
+            res = self.ann.get_nns_by_vector(resultant_vec, k, include_distances=include_distances)
 
         return res
 
