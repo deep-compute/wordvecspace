@@ -233,7 +233,6 @@ class WordVecSpace(WordVecSpaceBase):
                     combination: bool=False,
                     combination_method: str='distance',
                     weights: list=None) -> np.ndarray:
-        import pdb; pdb.set_trace()
 
         if not combination:
             return self._get_brute(v_w_i, k, metric,
