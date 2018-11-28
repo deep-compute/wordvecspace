@@ -95,7 +95,7 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
         if not combination or combination_method == 'vec_intersect':
             return self._get_brute(v_w_i, k, combination, include_distances)
 
-        if combination and combination_method == 'vector' and len(v_w_i) > 1:
+        if combination and combination_method == 'vector':
             return self._get_composite_vector_nearest(v_w_i, k, weights, metric, include_distances)
 
     def _get_composite_vector_nearest(self, v_w_i, k, weights, metric, include_distances):

@@ -246,7 +246,7 @@ class WordVecSpace(WordVecSpaceBase):
             return self._get_weighted_brute(v_w_i, k, metric,
                                             weights, include_distances)
 
-        if combination and combination_method == 'vector' and len(v_w_i) > 1:
+        if combination and combination_method == 'vector':
             return self._get_resultant_vector_nearest(v_w_i, k, metric,
                                                       weights, include_distances)
 
