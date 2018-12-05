@@ -12,6 +12,7 @@ DATAFILE_ENV_VAR = os.environ.get('WORDVECSPACE_DATADIR', '')
 
 check_equal = np.testing.assert_array_almost_equal
 
+
 class WordVecSpaceAnnoy(WordVecSpaceDisk):
 
     N_TREES = 1
@@ -44,15 +45,15 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
         self.ann.build(n_trees)
         self.ann.save(self.ann_file)
 
-    def get_distance(self, word_or_index1: Union[int, str, np.ndarray],\
-                    word_or_index2: Union[int, str, np.ndarray]):
+    def get_distance(self, word_or_index1: Union[int, str, np.ndarray],
+                     word_or_index2: Union[int, str, np.ndarray]):
         v1 = self._check_index_or_word(word_or_index1)
         v2 = self._check_index_or_word(word_or_index2)
 
         return self.ann.get_distance(v1, v2)
 
-    def get_distances(self, row_words_or_indices: Union[int, str, np.ndarray],\
-                    col_words_or_indices: Union[int, str, np.ndarray, None]=None):
+    def get_distances(self, row_words_or_indices: Union[int, str, np.ndarray],
+                      col_words_or_indices: Union[int, str, np.ndarray, None]=None):
 
         r = row_words_or_indices
         c = col_words_or_indices
@@ -90,7 +91,7 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
 
     def get_nearest(self, v_w_i: Union[int, str, list], k: int=DEFAULT_K,
                     examine_k: int=None, combination: bool=False,
-                    combination_method: str='vec_intersect',weights: list=None,
+                    combination_method: str='vec_intersect', weights: list=None,
                     metric: str=METRIC, include_distances: bool=False) -> np.ndarray:
 
         """Returns nearest indices from the vector space.
@@ -139,10 +140,12 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
         >>> wv.get_nearest(vecs, k=10, combination=True, combination_method='vector')
         array([  523,  5969,  4622, 18072,  2224, 10018,  5226,  8012,  5281,
                17910], dtype=uint32)
-        >>> wv.get_nearest(vecs, k=10, combination=True, combination_method='vector', include_distances=True)[1]
+        >>> wv.get_nearest(vecs, k=10, combination=True,
+        ... combination_method='vector', include_distances=True)[1]
         array([0.0066, 0.0658, 0.1132, 0.1134, 0.1154, 0.1315, 0.1343, 0.1544,
                0.1579, 0.169 ], dtype=float32)
         """
+
         if not combination:
             return self._get_brute(v_w_i, k, include_distances)
 
@@ -174,19 +177,24 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
 
         if isinstance(v, (list, np.ndarray)):
             resultant_vec = (v * weights[:, None]).sum(axis=0, dtype=np.float32)
-            res, distances= self.ann.get_nns_by_vector(resultant_vec, k, include_distances=True)
+            res, distances = self.ann.get_nns_by_vector(resultant_vec, k, include_distances=True)
 
-        return (np.array(res, dtype=np.uint32), np.array(distances, dtype=np.float32)) if include_distances else np.array(res, dtype=np.uint32)
+        if include_distances:
+            return (np.array(res, dtype=np.uint32), np.array(distances, dtype=np.float32))
+        else:
+            return np.array(res, dtype=np.uint32)
 
-    # FIXME: add include_distances for list of vectors
     def _get_brute(self, v_w_i, k, include_distances):
         """Retrives nearest indices when combination=False"""
 
         if not isinstance(v_w_i, (tuple, list, np.ndarray)):
             index = self._check_index_or_word(v_w_i)
 
-            nearest_indices, distances =  self.ann.get_nns_by_item(index, k, include_distances=True)
-            return ((np.array(nearest_indices, dtype=np.uint32), np.array(distances, dtype=np.float32)) if include_distances else np.array(nearest_indices, dtype=np.uint32))
+            nearest_indices, distances = self.ann.get_nns_by_item(index, k, include_distances=True)
+            if include_distances:
+                return (np.array(nearest_indices, dtype=np.uint32), np.array(distances, dtype=np.float32))
+            else:
+                return np.array(nearest_indices, dtype=np.uint32)
         else:
             res = list()
             for item in v_w_i:
@@ -252,7 +260,8 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
         distances = list()
         if not weights:
             weights = np.ones(len(v))
-        else: weights = np.array(weights)
+        else:
+            weights = np.array(weights)
 
         for item in v:
             idx, dist = self.ann.get_nns_by_vector(item, examine_k, include_distances=True)

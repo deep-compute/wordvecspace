@@ -463,7 +463,7 @@ class WordVecSpace(WordVecSpaceBase):
 
         w_a = np.zeros(len(v))
         d_a = np.zeros(len(v))
-        loc = np.where(indices==index)
+        loc = np.where(indices == index)
         dist = distances[loc]
         np.put(d_a, loc[0], dist)
         np.put(w_a, loc[0], weights[loc[0]])
