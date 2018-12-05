@@ -8,7 +8,7 @@ install:
 - sudo apt update
 - pip install .[service]
 script:
-- echo "No tests for this release"
+- python3 setup.py test
 deploy:
 - provider: releases
   skip_cleanup: true

@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/deep-compute/wordvecspace.svg?branch=master)](https://travis-ci.org/deep-compute/wordvecspace) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+
 # WordVecSpace
 A high performance pure python module that helps in loading and performing operations on word vector spaces created using Google's Word2vec tool.
 
@@ -331,42 +334,48 @@ wordvecspace.exception.UnknownWord: "inidia"
 
 ##### Get nearest
 ```python
-# Get nearest for given word or index
+# Get nearest for given word or index(mem)
 >>> print(wv.get_nearest("india", 20))
-[509, 3389, 486, 523, 7125, 16619, 4491, 12191, 6866, 8776, 15232, 14208, 5998, 21916, 5226, 6322, 4343, 6212, 10172, 6186]
+[509, 3389, 486, 6186, 20932, 3966, 22151, 5226, 6866, 1980, 24149, 9772, 10018, 8012, 3546, 2196, 46105, 45674, 14208, 523]
+>>> wv.get_nearest('india', k=20, include_distances=True)[0].tolist()
+# This operation will consist of tuple of arrays first being the nearest indices and second being array of distances
+[509, 3389, 486, 6186, 20932, 3966, 22151, 5226, 6866, 1980, 24149, 9772, 10018, 8012, 3546, 2196, 46105, 45674, 14208, 523]
+>>> wv.get_nearest('india', k=20, include_distances=True)[1].round(4)
+[0., 0.0016, 0.0017, 0.003 , 0.0041, 0.0048, 0.005 , 0.0056, 0.0059, 0.006 , 0.0061, 0.0063, 0.0068, 0.0068, 0.0072, 0.0072, 0.0075, 0.0075, 0.0076, 0.0078]
+# We can also find nearest results for multiple items
+>>> wv.get_words(wv.get_nearest(['india', 'pakistan'], k=10)[0])
+['india', 'morocco', 'china', 'herzegovina', 'republika', 'croatia', 'faroes', 'algeria', 'timor', 'inhabitants']
 
-# Get nearest for given words or indices
->>> print(wv.get_nearest(["ram", "india"], 5))
-[[3844, 16727, 15811, 42731, 41516], [509, 3389, 486, 523, 7125]]
+# We can also combine the nearest results 
+# set intersect
+>>> wv.get_words(wv.get_nearest(['india', 'pakistan'], k=10, examine_k=500, combination=True, combination_method='set_intersect')[0])
+['capital', 'sudan', 'mauritian', 'siberia', 'china', 'heartland', 'dnieper', 'cyprus', 'haiti', 'zaire']
+# we can provide weightage to each token, weightage determines how important that token is
+>>> wv.get_words(wv.get_nearest(['india', 'pakistan'], k=10, examine_k=500, combination=True, combination_method='set_intersect', weights=[0.8, 0.2])[0])
+['china', 'india', 'capital', 'mauritian', 'morocco', 'siberia', 'sudan', 'herzegovina', 'croatia', 'dnieper']
 
-# Get nearest using euclidean distance for WordVecSpaceMem
->>> print(wv.get_nearest(["ram", "india"], 5, metric='euclidean'))
-[[3844, 16727, 15811, 42731, 41516], [509, 3389, 486, 523, 7125]]
+# set union
+>>> wv.get_words(wv.get_nearest(['india', 'bangladesh'], k=10, examine_k=1000, combination=True, combination_method='set_union', weights=[0.9, 0.01])[0])
+['india', 'morocco', 'china', 'herzegovina', 'republika', 'croatia', 'faroes', 'algeria', 'timor', 'mauritian']
+>>> wv.get_words(wv.get_nearest(['india', 'bangladesh'], k=10, examine_k=1000, combination=True, combination_method='set_union', weights=[0.01, 0.9])[0])
+['immigrants', 'ukrainians', 'departments', 'neighbouring', 'euskal', 'autonomous', 'part', 'hungarians', 'afar', 'filipinos']
 
-# Get common nearest neighbors among given words
+# distance
+>>> wv.get_words(wv.get_nearest(['india', 'bangladesh'], k=10, examine_k=1000, combination=True, combination_method='distance')[0])
+['croatia', 'latvia', 'timor', 'dnieper', 'morocco', 'sudan', 'liberia', 'vietnamese', 'india', 'bangladesh']
+>>> wv.get_words(wv.get_nearest(['india', 'bangladesh'], k=10, examine_k=1000, combination=True, combination_method='distance', weights=[0.9, 0.1])[0])
+['india', 'morocco', 'china', 'croatia', 'herzegovina', 'timor', 'republika', 'algeria', 'latvia', 'siberia']
+# vector
+>>> wv.get_words(wv.get_nearest(['india', 'bangladesh'], k=10, examine_k=1000, combination=True, combination_method='vector')[0])
+['croatia', 'timor', 'latvia', 'morocco', 'dnieper', 'sudan', 'vietnamese', 'liberia', 'india', 'siberia']
+>>> wv.get_words(wv.get_nearest(['india', 'bangladesh'], k=10, examine_k=1000, combination=True, combination_method='vector', weights=[0.1, 0.9])[0])
+['bangladesh', 'latvia', 'chiapas', 'timor', 'liberia', 'croatia', 'uzbekistan', 'cochin', 'dnieper', 'qatar']
 
->>> print(wv.get_words(wv.get_nearest(['india', 'pakistan'], k=5)[0]))
-['india', 'morocco', 'china', 'herzegovina', 'republika']
->>> print(wv.get_words(wv.get_nearest(['india', 'pakistan'], k=50, combination=True, combination_method='vec_intersect')))
-['sudan', 'capital', 'mauritian', 'cyprus', 'heartland']
->>> print(wv.get_words(wv.get_nearest(['india', 'pakistan'], k=5, weights=[0.9, 0.1], combination=True, combination_method='vectors')[0]))
-['india', 'morocco', 'china', 'herzegovina', 'republika']
->>> print(wv.get_words(wv.get_nearest(['india', 'pakistan'], k=5, weights=[0.9, 0.1], combination=True, combination_method='distances')[0]))
-['india', 'china', 'morocco', 'herzegovina', 'croatia']
-
-
-# Get nearest with vector(s)
->>> wv.get_words(wv.get_nearest(wv.get_vector('india').reshape(1, wv.dim), k=5))
-['india', 'indian', 'subcontinent', 'bombay', 'bengal']
->>> wv.get_words(wv.get_nearest(wv.get_vectors(['india', 'pakistan']), k=5)[0])
-['india', 'indian', 'subcontinent', 'bombay', 'bengal']
->>> wv.get_words(wv.get_nearest(wv.get_vectors(['india', 'pakistan']), k=5)[1])
-['pakistan', 'pakistani', 'kargil', 'afghanistan', 'bangladesh']
->>> wv.get_words(wv.get_nearest(wv.get_vectors(['india', 'pakistan']), k=5)[0])
-['india', 'pakistan', 'indian', 'pakistani', 'subcontinent']
->>> wv.get_words(wv.get_nearest(wv.get_vectors(['india', 'pakistan']), k=5)[0])
-['pakistan', 'india', 'pakistani', 'kargil', 'indian']
-
+# with combination also we can retrive the corresponding distances
+>>> wv.get_nearest(['india', 'bangladesh'], k=10, examine_k=1000, combination=True, combination_method='set_union', weights=[0.1, 0.9], include_distances=True)
+(array([[ 3646, 17271,  5994,  6115, 41787,  4106,   120, 16127, 20338,
+        27416]], dtype=uint32), array([[0.0285, 0.0287, 0.0288, 0.0288, 0.0288, 0.029 , 0.029 , 0.0291,
+        0.0292, 0.0293]], dtype=float32))
 ```
 
 ## Service

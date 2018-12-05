@@ -4,6 +4,7 @@ from typing import Union
 
 from scipy.spatial import distance
 import numpy as np
+import pandas as pd
 import bottleneck
 
 from .fileformat import WordVecSpaceFile
@@ -228,19 +229,89 @@ class WordVecSpace(WordVecSpaceBase):
 
         return ner, dist
 
-    def get_nearest(self, v_w_i: list, k: int=DEFAULT_K,
-                    metric: str='cosine', include_distances: bool=False,
-                    combination: bool=False,
-                    combination_method: str='distance',
-                    weights: list=None) -> np.ndarray:
+    def get_nearest(self, v_w_i: list, k: int=DEFAULT_K, examine_k: int=None,
+                    combination: bool=False, combination_method: str='distance',
+                    weights: list=None, metric: str='cosine',
+                    include_distances: bool=False) -> np.ndarray:
+
+        """Retrives most similar indices from the vector space.
+
+        Arguments:
+        v_w_i -- vector(s), word(s), index(es)
+        k -- number of nearest items to be retrieved
+        examine_k -- number of items to be examined only in set_intersect and set_union
+        combination -- combination to be done or not
+        combination_method -- set_intersect/set_union/distance/vector
+        weights -- importance factor
+        metric -- angular/cosine/euclidean
+        include_distances -- know the distance value or not
+
+        Tests:
+        >>> wv = WordVecSpace(DATAFILE_ENV_VAR)
+        >>> wv.get_nearest('india', k=5)
+        array([  509,  3389,   486,  6186, 20932], dtype=uint32)
+        >>> wv.get_nearest(709, k=5)
+        array([  709,  1398,  8758,  7892, 15824], dtype=uint32)
+        >>> vecs = wv.get_vectors(['india', 'pakistan'])
+        >>> vecs
+        array([[-2.4544, -0.1309,  8.9653, -3.1779,  3.2016],
+               [-3.3736,  0.4845,  9.7016, -3.5337,  1.0142]], dtype=float32)
+        >>> wv.get_nearest(vecs, k=5)
+        array([[  509,  3389,   486,  6186, 20932],
+               [ 2224,  5281,  3560,  4622, 11886]], dtype=uint32)
+	>>> wv.get_nearest(vecs, k=5, examine_k=500,
+	... combination=True, combination_method='set_intersect')
+	array([[  523,  5969, 24149,  9772,   486]], dtype=uint32)
+        >>> wv.get_nearest(vecs, k=5, examine_k=500,
+        ... combination=True, combination_method='set_intersect', weights=[0.1, 0.9])
+        array([[ 2224,  5281,  3560,  4622, 11886]], dtype=uint32)
+        >>> wv.get_nearest(vecs, k=5, examine_k=500, combination=True,
+        ... combination_method='set_intersect', weights=[0.1, 0.9], include_distances=True)[1]
+        array([[0.2795, 0.2814, 0.2819, 0.282 , 0.2821]], dtype=float32)
+	>>> wv.get_nearest(vecs, k=5, examine_k=500,
+	... combination=True, combination_method='set_union')
+	array([[11087, 11304, 14483,  4538, 10737]], dtype=uint32)
+        >>> wv.get_nearest(vecs, k=5, examine_k=500,
+        ... combination=True, combination_method='set_union', weights=[0.1, 0.9])
+        array([[13942,   503, 28413, 27280, 26180]], dtype=uint32)
+        >>> wv.get_nearest(vecs, k=5, examine_k=500,
+        ... combination=True, combination_method='set_union', weights=[0.9, -0.9])
+        array([[ 2822,  2765, 12515, 66318,  8591]], dtype=uint32)
+        >>> wv.get_nearest(vecs, k=5, examine_k=500, combination=True,
+        ... combination_method='set_union', weights=[0.1, 0.9], include_distances=True)[1]
+        array([[0.0321, 0.0321, 0.0322, 0.0322, 0.0322]], dtype=float32)
+	>>> wv.get_nearest(vecs, k=5, combination=True, combination_method='distance')
+	array([[  523,  5969, 24149,  9772,   486]], dtype=uint32)
+        >>> wv.get_nearest(vecs, k=5, combination=True,
+        ... combination_method='distance', weights=[0.5, 0.3])
+        array([[  523,  5969,   486, 24149,  9772]], dtype=uint32)
+        >>> wv.get_nearest(vecs, k=5, combination=True,
+        ... combination_method='distance', weights=[0.5, 0.3], include_distances=True)[1]
+        array([[0.2425, 0.2435, 0.2435, 0.2439, 0.2441]], dtype=float32)
+	>>> wv.get_nearest(vecs, k=5, combination=True, combination_method='vector')
+	array([[  523,  5969, 24149,  9772,   486]], dtype=uint32)
+	>>> wv.get_nearest(vecs, k=5, combination=True,
+	... combination_method='vector', weights=[0.8, 0.2])
+	array([[  486,   509,   523, 24149,  3389]], dtype=uint32)
+        >>> wv.get_nearest(vecs, k=5, combination=True,
+        ... combination_method='vector', weights=[0.5, 0.3])
+        array([[  523,  5969,   486, 24149,  9772]], dtype=uint32)
+        >>> wv.get_nearest(vecs, k=5, combination=True,
+        ... combination_method='vector', weights=[0.5, 0.3], include_distances=True)[1]
+        array([[0.0006, 0.0023, 0.0023, 0.003 , 0.0034]], dtype=float32)
+        """
 
         if not combination:
             return self._get_brute(v_w_i, k, metric,
                                    combination, include_distances)
 
-        if combination and combination_method == 'vec_intersect':
-            return self._get_brute(v_w_i, k, metric,
-                                   combination, include_distances)
+        if combination and combination_method == 'set_intersect':
+            return self._get_set_intersect(v_w_i, k, examine_k, metric,
+                                           weights, include_distances)
+
+        if combination and combination_method == 'set_union':
+            return self._get_set_union(v_w_i, k, examine_k, metric,
+                                       weights, include_distances)
 
         if combination and combination_method == 'distance':
             return self._get_weighted_brute(v_w_i, k, metric,
@@ -250,7 +321,166 @@ class WordVecSpace(WordVecSpaceBase):
             return self._get_resultant_vector_nearest(v_w_i, k, metric,
                                                       weights, include_distances)
 
+    def _get_set_intersect(self, v_w_i, k, examine_k, metric, weights, include_distances):
+        """Performs set_intersect combination method.
+
+        Algorithm:
+        i) retrive nearest indices for each of the item
+        ii) do a set intersection operation
+        iii) find the corresponding distance of each item in interection set
+        iv) retrive nearest indices from intersection set
+        v) return
+        """
+        v = self._check_vec(v_w_i)
+
+        if not weights:
+            weights = np.ones(len(v))
+        else:
+            weights = np.array(weights)
+
+        d = self.get_distances(v, metric=metric)
+        indices, distances = self._nearest_sorting(d, examine_k)
+
+        intersect = np.array(list(set(indices[0]).intersection(*indices)))
+        corresponding_dists = list()
+        for index in intersect:
+            corresponding_dists.append(self._get_corresponding_dist(v, index, indices, distances, weights))
+
+        corresponding_dists = np.array(corresponding_dists, dtype=np.float32)
+        intersect_indices, distances = self._nearest_sorting(corresponding_dists.reshape(1, len(corresponding_dists)), k)
+        nearest_indices = intersect[intersect_indices]
+
+        # FIXME: get_distances twice is computationally expensive
+        return (nearest_indices, distances) if include_distances else nearest_indices
+
+    def _get_set_union(self, v_w_i, k, examine_k, metric, weights, include_distances):
+        """Performs set_union combination method.
+
+        Algorithm:
+        i) retrive nearest indices for each item
+        ii) do a set union operation
+        iii) find the corresponding distance of each of the in union set
+        iv) retrieve nearest indices from union set
+        v) return
+        """
+
+        v = self._check_vec(v_w_i)
+
+        if not weights:
+            weights = np.ones(len(v))
+        else:
+            weights = np.array(weights)
+
+        d = self.get_distances(v, metric=metric)
+        indices, distances = self._nearest_sorting(d, examine_k)
+
+        union = np.array(list(set().union(*indices)), dtype=np.uint32)
+
+        corresponding_dists = list()
+        for index in union:
+            corresponding_dists.append(self._get_corresponding_dist(v, index, indices, distances, weights))
+
+        corresponding_dists = np.array(corresponding_dists, dtype=np.float32)
+        union_indices, distances = self._nearest_sorting(corresponding_dists.reshape(1, len(corresponding_dists)), k)
+        nearest_indices = union[union_indices]
+
+        return (nearest_indices, distances) if include_distances else nearest_indices
+
+    def _get_corresponding_dist(self, v, index, indices, distances, weights):
+        """Return corresponding distance.
+
+        While returning the corresponding distance we need make sure that,
+        importance factor, i.e weights must applied to that distance.
+        The following numpy operations helps understand will accomplish this task.
+
+        Tests:
+        >>> index = 3
+        >>> indices = np.array([[3,6,9], [4, 3, 8]])
+        >>> distances = np.array([[0.1, 0.2, 0.3], [0.2, 0.5, 0.8]])
+        >>> weights = np.array([0.6, 0.4])
+        >>> weight_array = np.zeros(len(indices))
+        >>> dist_array = np.zeros(len(indices))
+        >>> loc = np.where(indices==index)
+        >>> loc
+        (array([0, 1]), array([0, 1]))
+        >>> # First item in tuple is row and second is column
+        >>> dist = distances[loc]
+        >>> dist
+        array([0.1, 0.5])
+        >>> np.put(dist_array, loc[0], dist)
+        >>> dist_array
+        array([0.1, 0.5])
+        >>> np.put(weight_array, loc[0], weights[loc[0]])
+        >>> weight_array
+        array([0.6, 0.4])
+        >>> index = 6
+        >>> weight_array = np.zeros(len(indices))
+        >>> dist_array = np.zeros(len(indices))
+        >>> loc = np.where(indices==index)
+        >>> loc
+        (array([0]), array([1]))
+        >>> dist = distances[loc]
+        >>> dist
+        array([0.2])
+        >>> np.put(dist_array, loc[0], dist)
+        >>> dist_array
+        array([0.2, 0. ])
+        >>> np.put(weight_array, loc[0], weights[loc[0]])
+        >>> weight_array
+        array([0.6, 0. ])
+        >>> index = 8
+        >>> weight_array = np.zeros(len(indices))
+        >>> dist_array = np.zeros(len(indices))
+        >>> loc = np.where(indices==index)
+        >>> loc
+        (array([1]), array([2]))
+        >>> dist = distances[loc]
+        >>> dist
+        array([0.8])
+        >>> np.put(dist_array, loc[0], dist)
+        >>> dist_array
+        array([0. , 0.8])
+        >>> np.put(weight_array, loc[0], weights[loc[0]])
+        >>> weight_array
+        array([0. , 0.4])
+        >>> indices = np.array([[3,6,9], [4, 3, 8], [7, 3, 3]])
+        >>> distances = np.array([[0.1, 0.2, 0.3], [0.2, 0.5, 0.8], [0.3, 0.4, 0.5]])
+        >>> weights = np.array([0.6, 0.4, 0.9])
+        >>> weight_array = np.zeros(len(indices))
+        >>> dist_array = np.zeros(len(indices))
+        >>> loc = np.where(indices==7)
+        >>> loc
+        (array([2]), array([0]))
+        >>> dist = distances[loc]
+        >>> dist
+        array([0.3])
+        >>> np.put(dist_array, loc[0], dist)
+        >>> dist_array
+        array([0. , 0. , 0.3])
+        >>> np.put(weight_array, loc[0], weights[loc[0]])
+        >>> weight_array
+        array([0. , 0. , 0.9])
+        """
+
+        w_a = np.zeros(len(v))
+        d_a = np.zeros(len(v))
+        loc = np.where(indices==index)
+        dist = distances[loc]
+        np.put(d_a, loc[0], dist)
+        np.put(w_a, loc[0], weights[loc[0]])
+        s = np.dot(w_a, d_a)
+
+        return s
+
     def _get_resultant_vector_nearest(self, v_w_i, k, metric, weights, include_distances):
+        """Retrieves nearest indices based on the resultant vector.
+
+        Algorithm:
+        i) Compute the resultant vector by summing per dimension across vectors
+        ii) Commpute distances based on this resultant vector
+        iii) Return nearest indices after sorting
+        """
+
         v = self._check_vec(v_w_i)
 
         if not weights:
@@ -266,9 +496,19 @@ class WordVecSpace(WordVecSpaceBase):
         return (nearest_indices, distances) if include_distances else nearest_indices
 
     def _get_weighted_brute(self, v_w_i, k, metric, weights, include_distances):
-        d = self.get_distances(v_w_i, metric=metric)
+        """Retrieves nearest indices based on weights applied to per vector's distance.
+
+        Algorithm:
+        i) Compute the distance matrix .
+        ii) Perform dot operation with this distance matrix and weights
+        iii) Retrive nearest indices on the weighted distance matrix
+        iv) Return
+        """
+
+        v = self._check_vec(v_w_i)
+        d = self.get_distances(v, metric=metric)
         if not weights:
-            weights = np.ones(len(v_w_i))
+            weights = np.ones(len(v))
         else:
             weights = np.array(weights)
 
@@ -278,14 +518,12 @@ class WordVecSpace(WordVecSpaceBase):
         return (nearest_indices, distances) if include_distances else nearest_indices
 
     def _get_brute(self, v_w_i, k, metric, combination, include_distances):
+        """Retrives nearest indices when combination=False"""
+
         d = self.get_distances(v_w_i, metric=metric)
         nearest_indices, distances = self._nearest_sorting(d, k)
 
-        if combination:
-            ner = list(set(nearest_indices[0]).intersection(*nearest_indices))
-            return (ner, distances) if include_distances else ner
-
         if isinstance(v_w_i, (list, tuple)) or isinstance(v_w_i, np.ndarray) and len(v_w_i) > 1:
-            return (nearest_indices, dist) if include_distances else nearest_indices
+            return (nearest_indices, distances) if include_distances else nearest_indices
         else:
-            return (nearest_indices[0], dist[0]) if include_distances else nearest_indices[0]
+            return (nearest_indices[0], distances[0]) if include_distances else nearest_indices[0]
