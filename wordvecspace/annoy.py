@@ -148,15 +148,14 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
 
         if not combination:
             return self._get_brute(v_w_i, k, include_distances)
-
-        if combination and combination_method == 'set_intersect':
+        elif combination_method == 'set_intersect':
             return self._get_set_intersect(v_w_i, k, examine_k, metric, weights, include_distances)
-
-        if combination and combination_method == 'set_union':
+        elif combination_method == 'set_union':
             return self._get_set_union(v_w_i, k, examine_k, metric, weights, include_distances)
-
-        if combination and combination_method == 'vector':
+        elif combination_method == 'vector':
             return self._get_resultant_vector_nearest(v_w_i, k, weights, metric, include_distances)
+        else:
+            raise InvalidCombination()
 
     def _get_resultant_vector_nearest(self, v_w_i, k, weights, metric, include_distances):
         """Retrieves nearest indices based on the resultant vector.
@@ -185,7 +184,7 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
             return np.array(res, dtype=np.uint32)
 
     def _get_brute(self, v_w_i, k, include_distances):
-        """Retrives nearest indices when combination=False"""
+        """Retrives nearest indices when combination=False."""
 
         if not isinstance(v_w_i, (tuple, list, np.ndarray)):
             index = self._check_index_or_word(v_w_i)
@@ -220,10 +219,8 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
         v = self._check_vec(v_w_i)
         indices = list()
         distances = list()
-        if not weights:
-            weights = np.ones(len(v))
-        else:
-            weights = np.array(weights)
+        if not weights: weights = np.ones(len(v))
+        else: weights = np.array(weights)
         for item in v:
             idx, dist = self.ann.get_nns_by_vector(item, examine_k, include_distances=True)
             indices.append(idx)
@@ -235,14 +232,9 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
         indices = np.array(indices, dtype=np.uint32)
         distances = np.array(distances, dtype=np.float32)
 
-        for index in intersect:
-            corresponding_dists.append(self._get_corresponding_dist(v, index, indices, distances, weights))
+        nearest_indices, nearest_distances = self._get_set_nearest(intersect, v, k, indices, distances, weights) 
 
-        corresponding_dists = np.array(corresponding_dists, np.float32)
-        intersect_indices, distances = self._nearest_sorting(corresponding_dists.reshape(1, len(corresponding_dists)), k)
-        nearest_indices = intersect[intersect_indices]
-
-        return (nearest_indices, distances) if include_distances else nearest_indices
+        return (nearest_indices, nearest_distances) if include_distances else nearest_indices
 
     def _get_set_union(self, v_w_i, k, examine_k, metric, weights, include_distances):
         """Performs set_union combination method.
@@ -258,10 +250,8 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
         v = self._check_vec(v_w_i)
         indices = list()
         distances = list()
-        if not weights:
-            weights = np.ones(len(v))
-        else:
-            weights = np.array(weights)
+        if not weights: weights = np.ones(len(v))
+        else: weights = np.array(weights)
 
         for item in v:
             idx, dist = self.ann.get_nns_by_vector(item, examine_k, include_distances=True)
@@ -269,16 +259,10 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
             distances.append(dist)
 
         union = np.array(list(set().union(*indices)), dtype=np.uint32)
-        corresponding_dists = list()
 
         indices = np.array(indices, dtype=np.uint32)
         distances = np.array(distances, dtype=np.float32)
 
-        for index in union:
-            corresponding_dists.append(self._get_corresponding_dist(v, index, indices, distances, weights))
+        nearest_indices, nearest_distances = self._get_set_nearest(union, v, k, indices, distances, weights) 
 
-        corresponding_dists = np.array(corresponding_dists, np.float32)
-        union_indices, distances = self._nearest_sorting(corresponding_dists.reshape(1, len(corresponding_dists)), k)
-        nearest_indices = union[union_indices]
-
-        return (nearest_indices, distances) if include_distances else nearest_indices
+        return (nearest_indices, nearest_distances) if include_distances else nearest_indices

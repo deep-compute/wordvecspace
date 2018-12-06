@@ -21,3 +21,10 @@ class UnknownType(BaseException):
 
     def __str__(self):
         return '"%s"' % self._type
+
+class InvalidCombination(BaseException):
+    def __init__(self):
+        self.msg = 'Invalid Operation, please check combination parameters'
+
+    def __str__(self):
+        return '{}'.format(self.msg)

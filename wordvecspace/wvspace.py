@@ -8,6 +8,7 @@ import bottleneck
 
 from .fileformat import WordVecSpaceFile
 from .base import WordVecSpaceBase
+from .exception import InvalidCombination
 
 np.set_printoptions(precision=4)
 check_equal = np.testing.assert_array_almost_equal
@@ -232,7 +233,6 @@ class WordVecSpace(WordVecSpaceBase):
                     combination: bool=False, combination_method: str='distance',
                     weights: list=None, metric: str='cosine',
                     include_distances: bool=False) -> np.ndarray:
-
         """Retrives most similar indices from the vector space.
 
         Arguments:
@@ -304,21 +304,24 @@ class WordVecSpace(WordVecSpaceBase):
             return self._get_brute(v_w_i, k, metric,
                                    combination, include_distances)
 
-        if combination and combination_method == 'set_intersect':
+        elif combination_method == 'set_intersect':
             return self._get_set_intersect(v_w_i, k, examine_k, metric,
                                            weights, include_distances)
 
-        if combination and combination_method == 'set_union':
+        elif combination_method == 'set_union':
             return self._get_set_union(v_w_i, k, examine_k, metric,
                                        weights, include_distances)
 
-        if combination and combination_method == 'distance':
+        elif combination_method == 'distance':
             return self._get_weighted_brute(v_w_i, k, metric,
                                             weights, include_distances)
 
-        if combination and combination_method == 'vector':
+        elif combination_method == 'vector':
             return self._get_resultant_vector_nearest(v_w_i, k, metric,
                                                       weights, include_distances)
+
+        else:
+           raise InvalidCombination()
 
     def _get_set_intersect(self, v_w_i, k, examine_k, metric, weights, include_distances):
         """Performs set_intersect combination method.
@@ -330,27 +333,19 @@ class WordVecSpace(WordVecSpaceBase):
         iv) retrive nearest indices from intersection set
         v) return
         """
+
         v = self._check_vec(v_w_i)
 
-        if not weights:
-            weights = np.ones(len(v))
-        else:
-            weights = np.array(weights)
+        if not weights: weights = np.ones(len(v))
+        else: weights = np.array(weights)
 
         d = self.get_distances(v, metric=metric)
         indices, distances = self._nearest_sorting(d, examine_k)
 
         intersect = np.array(list(set(indices[0]).intersection(*indices)))
-        corresponding_dists = list()
-        for index in intersect:
-            corresponding_dists.append(self._get_corresponding_dist(v, index, indices, distances, weights))
+        nearest_indices, nearest_distances = self._get_set_nearest(intersect, v, k, indices, distances, weights)
 
-        corresponding_dists = np.array(corresponding_dists, dtype=np.float32)
-        intersect_indices, distances = self._nearest_sorting(corresponding_dists.reshape(1, len(corresponding_dists)), k)
-        nearest_indices = intersect[intersect_indices]
-
-        # FIXME: get_distances twice is computationally expensive
-        return (nearest_indices, distances) if include_distances else nearest_indices
+        return (nearest_indices, nearest_distances) if include_distances else nearest_indices
 
     def _get_set_union(self, v_w_i, k, examine_k, metric, weights, include_distances):
         """Performs set_union combination method.
@@ -365,25 +360,27 @@ class WordVecSpace(WordVecSpaceBase):
 
         v = self._check_vec(v_w_i)
 
-        if not weights:
-            weights = np.ones(len(v))
-        else:
-            weights = np.array(weights)
+        if not weights: weights = np.ones(len(v))
+        else: weights = np.array(weights)
 
         d = self.get_distances(v, metric=metric)
         indices, distances = self._nearest_sorting(d, examine_k)
 
         union = np.array(list(set().union(*indices)), dtype=np.uint32)
+        nearest_indices, nearest_distances = self._get_set_nearest(union, v, k, indices, distances, weights)
 
+        return (nearest_indices, nearest_distances) if include_distances else nearest_indices
+
+    def _get_set_nearest(self, s, v, k, indices, distances, weights):
         corresponding_dists = list()
-        for index in union:
+        for index in s:
             corresponding_dists.append(self._get_corresponding_dist(v, index, indices, distances, weights))
 
         corresponding_dists = np.array(corresponding_dists, dtype=np.float32)
-        union_indices, distances = self._nearest_sorting(corresponding_dists.reshape(1, len(corresponding_dists)), k)
-        nearest_indices = union[union_indices]
+        set_indices, distances = self._nearest_sorting(corresponding_dists.reshape(1, len(corresponding_dists)), k)
+        nearest_indices = s[set_indices]
 
-        return (nearest_indices, distances) if include_distances else nearest_indices
+        return nearest_indices, distances
 
     def _get_corresponding_dist(self, v, index, indices, distances, weights):
         """Return corresponding distance.
@@ -517,7 +514,7 @@ class WordVecSpace(WordVecSpaceBase):
         return (nearest_indices, distances) if include_distances else nearest_indices
 
     def _get_brute(self, v_w_i, k, metric, combination, include_distances):
-        """Retrives nearest indices when combination=False"""
+        """Retrives nearest indices when combination=False."""
 
         d = self.get_distances(v_w_i, metric=metric)
         nearest_indices, distances = self._nearest_sorting(d, k)
