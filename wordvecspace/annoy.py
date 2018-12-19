@@ -251,10 +251,6 @@ class WordVecSpaceAnnoy(WordVecSpaceDisk):
         >>> wv.get_nearest(vecs, k=5)
         array([[15890, 32156, 31197, 32342, 20573],
                [ 3826, 10458,  2686, 20515, 39195]], dtype=uint32)
-        >>> wv.get_nearest(vecs, k=5, include_distances=True)
-        (array([[15890, 32156, 31197, 32342, 20573],
-               [ 3826, 10458,  2686, 20515, 39195]], dtype=uint32), array([[0.    , 0.0761, 0.0942, 0.1018, 0.1084],
-               [0.0003, 0.0348, 0.0399, 0.0552, 0.0556]], dtype=float32))
         """
 
         if not isinstance(v_w_i, (tuple, list, np.ndarray)):
