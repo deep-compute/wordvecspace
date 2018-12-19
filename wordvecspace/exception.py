@@ -28,3 +28,10 @@ class InvalidCombination(BaseException):
 
     def __str__(self):
         return '{}'.format(self.msg)
+
+class InvalidMetric(BaseException):
+    def __init__(self):
+        self.msg = 'Invalid metric supplied'
+
+    def __str__(self):
+        return '{}'.format(self.msg)

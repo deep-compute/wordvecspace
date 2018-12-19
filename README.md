@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/deep-compute/wordvecspace.svg?branch=master)](https://travis-ci.org/deep-compute/wordvecspace) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)[![Build Status](https://travis-ci.org/deep-compute/wordvecspace.svg?branch=master)](https://travis-ci.org/deep-compute/wordvecspace)[![Coverage Status](https://coveralls.io/repos/github/deep-compute/wordvecspace/badge.svg?branch=master)](https://coveralls.io/github/deep-compute/wordvecspace?branch=master)
 
 # WordVecSpace
 A high performance pure python module that helps in loading and performing operations on word vector spaces created using Google's Word2vec tool.
@@ -333,50 +333,97 @@ wordvecspace.exception.UnknownWord: "inidia"
 ```
 
 ##### Get nearest
+
+We can perform get_nearest operation on both WordVecSpaceMem and WordVecSpaceAnnoy. The methods supported in both are -
+###### WordVecSpaceMem
+- Brute force
+- Full Matrix 
+- Vector
+- Set Union
+- Set Intersect
+
 ```python
-# Get nearest for given word or index(mem)
->>> print(wv.get_nearest("india", 20))
-[509, 3389, 486, 6186, 20932, 3966, 22151, 5226, 6866, 1980, 24149, 9772, 10018, 8012, 3546, 2196, 46105, 45674, 14208, 523]
->>> wv.get_nearest('india', k=20, include_distances=True)[0].tolist()
-# This operation will consist of tuple of arrays first being the nearest indices and second being array of distances
-[509, 3389, 486, 6186, 20932, 3966, 22151, 5226, 6866, 1980, 24149, 9772, 10018, 8012, 3546, 2196, 46105, 45674, 14208, 523]
->>> wv.get_nearest('india', k=20, include_distances=True)[1].round(4)
-[0., 0.0016, 0.0017, 0.003 , 0.0041, 0.0048, 0.005 , 0.0056, 0.0059, 0.006 , 0.0061, 0.0063, 0.0068, 0.0068, 0.0072, 0.0072, 0.0075, 0.0075, 0.0076, 0.0078]
-# We can also find nearest results for multiple items
->>> wv.get_words(wv.get_nearest(['india', 'pakistan'], k=10)[0])
-['india', 'morocco', 'china', 'herzegovina', 'republika', 'croatia', 'faroes', 'algeria', 'timor', 'inhabitants']
-
-# We can also combine the nearest results 
-# set intersect
->>> wv.get_words(wv.get_nearest(['india', 'pakistan'], k=10, examine_k=500, combination=True, combination_method='set_intersect')[0])
-['capital', 'sudan', 'mauritian', 'siberia', 'china', 'heartland', 'dnieper', 'cyprus', 'haiti', 'zaire']
-# we can provide weightage to each token, weightage determines how important that token is
->>> wv.get_words(wv.get_nearest(['india', 'pakistan'], k=10, examine_k=500, combination=True, combination_method='set_intersect', weights=[0.8, 0.2])[0])
-['china', 'india', 'capital', 'mauritian', 'morocco', 'siberia', 'sudan', 'herzegovina', 'croatia', 'dnieper']
-
-# set union
->>> wv.get_words(wv.get_nearest(['india', 'bangladesh'], k=10, examine_k=1000, combination=True, combination_method='set_union', weights=[0.9, 0.01])[0])
-['india', 'morocco', 'china', 'herzegovina', 'republika', 'croatia', 'faroes', 'algeria', 'timor', 'mauritian']
->>> wv.get_words(wv.get_nearest(['india', 'bangladesh'], k=10, examine_k=1000, combination=True, combination_method='set_union', weights=[0.01, 0.9])[0])
-['immigrants', 'ukrainians', 'departments', 'neighbouring', 'euskal', 'autonomous', 'part', 'hungarians', 'afar', 'filipinos']
-
-# distance
->>> wv.get_words(wv.get_nearest(['india', 'bangladesh'], k=10, examine_k=1000, combination=True, combination_method='distance')[0])
-['croatia', 'latvia', 'timor', 'dnieper', 'morocco', 'sudan', 'liberia', 'vietnamese', 'india', 'bangladesh']
->>> wv.get_words(wv.get_nearest(['india', 'bangladesh'], k=10, examine_k=1000, combination=True, combination_method='distance', weights=[0.9, 0.1])[0])
-['india', 'morocco', 'china', 'croatia', 'herzegovina', 'timor', 'republika', 'algeria', 'latvia', 'siberia']
-# vector
->>> wv.get_words(wv.get_nearest(['india', 'bangladesh'], k=10, examine_k=1000, combination=True, combination_method='vector')[0])
-['croatia', 'timor', 'latvia', 'morocco', 'dnieper', 'sudan', 'vietnamese', 'liberia', 'india', 'siberia']
->>> wv.get_words(wv.get_nearest(['india', 'bangladesh'], k=10, examine_k=1000, combination=True, combination_method='vector', weights=[0.1, 0.9])[0])
-['bangladesh', 'latvia', 'chiapas', 'timor', 'liberia', 'croatia', 'uzbekistan', 'cochin', 'dnieper', 'qatar']
-
-# with combination also we can retrive the corresponding distances
->>> wv.get_nearest(['india', 'bangladesh'], k=10, examine_k=1000, combination=True, combination_method='set_union', weights=[0.1, 0.9], include_distances=True)
-(array([[ 3646, 17271,  5994,  6115, 41787,  4106,   120, 16127, 20338,
-        27416]], dtype=uint32), array([[0.0285, 0.0287, 0.0288, 0.0288, 0.0288, 0.029 , 0.029 , 0.0291,
-        0.0292, 0.0293]], dtype=float32))
+>>> wv.get_nearest('timon', k=5)
+array([64538, 56847, 68981, 71022, 57315], dtype=uint32)
+>>> wv.get_words(wv.get_nearest('timon', k=5))
+['timon', 'perelman', 'hazeh', 'howells', 'novelas']
+>>> wv.get_nearest('timon', k=5, include_distances=True)
+(array([64538, 56847, 68981, 71022, 57315], dtype=uint32), array([-1.1921e-07,  2.6537e-03,  4.0489e-03,  4.4007e-03,  4.4962e-03],
+      dtype=float32))
+>>> wv.get_nearest(['lion', 'king'], k=5, include_distances=True)
+(array([[ 4661,  9720, 27689, 24479, 35682],
+       [  187,  6853,  5038,  4902, 53379]], dtype=uint32), array([[0.0000e+00, 6.2758e-04, 6.6060e-04, 8.8632e-04, 9.6977e-04],
+       [1.1921e-07, 8.2350e-04, 2.3635e-03, 3.3917e-03, 3.7411e-03]],
+      dtype=float32))
+>>> wv.get_nearest(['lion', 'king'], k=5, combination_method='vector')
+array([[ 4661,  9720, 27689, 24479, 35682],
+       [  187,  6853,  5038,  4902, 53379]], dtype=uint32)
+>>> wv.get_nearest(['lion', 'king'], k=5, combination_method='vector', combination=True)
+array([ 3762, 20802, 13641, 20710, 36743], dtype=uint32)
+>>> wv.get_nearest(['lion', 'king'], k=5, combination_method='vector', combination=True, include_distances=True)
+(array([ 3762, 20802, 13641, 20710, 36743], dtype=uint32), array([0.0015, 0.0017, 0.002 , 0.0036, 0.0039], dtype=float32))
+>>> wv.get_nearest(['lion', 'king'], k=5, combination_method='vector', combination=True, include_distances=True, weights=[0.8, 0.2])
+(array([24446, 19949, 22352, 31033, 13195], dtype=uint32), array([0.001 , 0.0016, 0.0029, 0.0033, 0.0035], dtype=float32))
+>>> # Here weights refer to importance factor, for lion vector you want to more importance than king vector
+>>> wv.get_nearest(['lion', 'king'], k=5, combination_method='full_matrix', combination=True)
+array([ 3762, 20802, 13641, 20710, 36743], dtype=uint32)
+>>> wv.get_nearest(['lion', 'king'], k=5, combination_method='full_matrix', combination=True, include_distances=True)
+(array([ 3762, 20802, 13641, 20710, 36743], dtype=uint32), array([0.8411, 0.8414, 0.8417, 0.8436, 0.844 ], dtype=float32))
+>>> wv.get_nearest(['lion', 'king'], k=5, combination_method='full_matrix', combination=True, include_distances=True, weights=[0.8, 0.2])
+(array([24446, 19949, 22352, 31033, 13195], dtype=uint32), array([0.5929, 0.5931, 0.5936, 0.5938, 0.5939], dtype=float32))
+>>> wv.get_nearest(['lion', 'king'], k=5, combination_method='set_union', combination=True, examine_k=500)
+array([ 4661,   187,  9720, 27689,  6853], dtype=uint32)
+>>> wv.get_nearest(['lion', 'king'], k=5, combination_method='set_union', combination=True, examine_k=500, include_distances=True)
+(array([ 4661,   187,  9720, 27689,  6853], dtype=uint32), array([0.2929, 0.2929, 0.2933, 0.2934, 0.2935], dtype=float32))
+>>> wv.get_nearest(['lion', 'king'], k=5, combination_method='set_union', combination=True, examine_k=500, include_distances=True, weights=[0.8, 0.2])
+(array([ 4661,  9720, 27689, 24479, 35682], dtype=uint32), array([0.4343, 0.4347, 0.4347, 0.4348, 0.4349], dtype=float32))
+>>> wv.get_nearest(['lion', 'king'], k=5, combination_method='set_intersect', combination=True, examine_k=500)
+array([], dtype=uint32)
+>>> wv.get_nearest(['lion', 'king'], k=5, combination_method='set_intersect', combination=True, examine_k=5000)
+array([13754, 11637,  2427,  5578, 54469], dtype=uint32)
+>>> wv.get_nearest(['laptop', 'phone'], k=5, combination_method='set_intersect', combination=True, examine_k=500, include_distances=True, weights=[0.8, 0.2])
+(array([15445, 27639, 12198, 14883, 25402], dtype=uint32), array([0.3133, 0.3135, 0.3144, 0.3149, 0.3151], dtype=float32))
 ```
+
+###### WordVecSpaceAnnoy
+- Brute Force
+- Set Union
+- Set Intersect
+
+```python
+>>> wv.get_nearest('timon', k=5)
+array([64538, 56847, 68981, 57315, 65598], dtype=uint32)
+>>> wv.get_words(wv.get_nearest('timon', k=5))
+['timon', 'perelman', 'hazeh', 'novelas', 'getafix']
+>>> wv.get_nearest('timon', k=5, include_distances=True)
+(array([64538, 56847, 68981, 57315, 65598], dtype=uint32), array([0.    , 0.0729, 0.09  , 0.0948, 0.1032], dtype=float32))
+>>> wv.get_nearest(['lion', 'king'], k=5, include_distances=True)
+(array([[ 4661,  9720, 27689, 24479, 35544],
+       [  187,  6853,  2531, 22795, 23593]], dtype=uint32), array([[0.    , 0.0354, 0.0363, 0.0421, 0.0446],
+       [0.    , 0.0406, 0.1031, 0.1251, 0.1277]], dtype=float32))
+>>> wv.get_nearest(['lion', 'king'], k=5, combination_method='vector')
+array([[ 4661,  9720, 27689, 24479, 35544],
+       [  187,  6853,  2531, 22795, 23593]], dtype=uint32)
+>>> wv.get_nearest(['lion', 'king'], k=5, combination_method='vector', combination=True)
+array([ 3762, 13641, 15429, 42129,  4735], dtype=uint32)
+>>> wv.get_nearest(['lion', 'king'], k=5, combination_method='vector', combination=True, include_distances=True)
+(array([ 3762, 13641, 15429, 42129,  4735], dtype=uint32), array([0.0547, 0.0628, 0.1436, 0.1459, 0.1777], dtype=float32))
+>>> wv.get_nearest(['lion', 'king'], k=5, combination_method='vector', combination=True, include_distances=True, weights=[0.8, 0.2])
+(array([19949, 22352, 12125, 39761, 26200], dtype=uint32), array([0.0564, 0.0759, 0.0913, 0.0996, 0.1179], dtype=float32))
+>>> wv.get_nearest(['lion', 'king'], k=5, combination_method='set_union', combination=True, examine_k=500)
+array([  187,  4661,  9720, 27689,  6853], dtype=uint32)
+>>> wv.get_nearest(['lion', 'king'], k=5, combination_method='set_union', combination=True, examine_k=500, include_distances=True)
+(array([  187,  4661,  9720, 27689,  6853], dtype=uint32), array([0.    , 0.0005, 0.0354, 0.0363, 0.0406], dtype=float32))
+>>> wv.get_nearest(['lion', 'king'], k=5, combination_method='set_union', combination=True, examine_k=500, include_distances=True, weights=[0.8, 0.2])
+(array([ 4661,  9720, 27689, 24479, 35682], dtype=uint32), array([0.2004, 0.2283, 0.2291, 0.2337, 0.2352], dtype=float32))
+>>> wv.get_nearest(['lion', 'king'], k=5, combination_method='set_intersect', combination=True, examine_k=500)
+array([], dtype=uint32)
+>>> wv.get_nearest(['lion', 'king'], k=5, combination_method='set_intersect', combination=True, examine_k=5000)
+array([13195, 31033, 12125, 19949, 22158], dtype=uint32)
+>>> wv.get_nearest(['laptop', 'phone'], k=5, combination_method='set_intersect', combination=True, examine_k=500, include_distances=True, weights=[0.8, 0.2])
+(array([11044, 41600, 10665, 17728,  6167], dtype=uint32), array([0.1918, 0.1924, 0.1954, 0.1998, 0.223 ], dtype=float32))
+```
+
 
 ## Service
 
