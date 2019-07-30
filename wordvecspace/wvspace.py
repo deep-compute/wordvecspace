@@ -14,15 +14,15 @@ check_equal = np.testing.assert_array_almost_equal
 
 # export data directory path for test cases
 # $export WORDVECSPACE_DATADIR=/path/to/data/
-DATAFILE_ENV_VAR = os.environ.get('WORDVECSPACE_DATADIR', '')
+DATAFILE_ENV_VAR = os.environ.get("WORDVECSPACE_DATADIR", "")
 
 
 class WordVecSpace(WordVecSpaceBase):
-    METRIC = 'cosine'
+    METRIC = "cosine"
     DEFAULT_K = 512
 
-    def __init__(self, input_dir: str, metric: str=METRIC) -> None:
-        self._f = WordVecSpaceFile(input_dir, mode='r')
+    def __init__(self, input_dir: str, metric: str = METRIC) -> None:
+        self._f = WordVecSpaceFile(input_dir, mode="r")
 
         self.input_dir = input_dir
         self.metric = metric
@@ -52,7 +52,7 @@ class WordVecSpace(WordVecSpaceBase):
             return []
 
         if isinstance(w, np.ndarray):
-            assert(w.dtype == np.uint32 and len(w.shape) == 1)
+            assert w.dtype == np.uint32 and len(w.shape) == 1
 
         if isinstance(w, (list, tuple)):
             if isinstance(w[0], str):
@@ -75,7 +75,7 @@ class WordVecSpace(WordVecSpaceBase):
             return self.get_vector(v, normalized=normalised)
 
     def get_manifest(self) -> dict:
-        manifest_info = open(os.path.join(self.input_dir, 'manifest.json'), 'r')
+        manifest_info = open(os.path.join(self.input_dir, "manifest.json"), "r")
         manifest_info = json.loads(manifest_info.read())
 
         return manifest_info
@@ -84,12 +84,12 @@ class WordVecSpace(WordVecSpaceBase):
         return word in self.wtoi
 
     def get_index(self, word: str) -> int:
-        assert(isinstance(word, str))
+        assert isinstance(word, str)
 
         return self.wtoi[word]
 
     def get_indices(self, words: list) -> list:
-        assert(isinstance(words, (tuple, list)) and len(words) != 0)
+        assert isinstance(words, (tuple, list)) and len(words) != 0
 
         indices = [self.wtoi[w] for w in words]
         return indices
@@ -120,7 +120,9 @@ class WordVecSpace(WordVecSpaceBase):
 
         return self.occurs.take(w)
 
-    def get_vector(self, word_or_index: Union[int, str], normalized: bool=False) -> np.ndarray:
+    def get_vector(
+        self, word_or_index: Union[int, str], normalized: bool = False
+    ) -> np.ndarray:
         index = self._check_index_or_word(word_or_index)
 
         if normalized:
@@ -128,7 +130,9 @@ class WordVecSpace(WordVecSpaceBase):
 
         return self.vecs[index] * self.mags[index]
 
-    def get_vectors(self, words_or_indices: list, normalized: bool=False) -> np.ndarray:
+    def get_vectors(
+        self, words_or_indices: list, normalized: bool = False
+    ) -> np.ndarray:
         w = self._check_indices_or_words(words_or_indices)
 
         if normalized:
@@ -139,8 +143,12 @@ class WordVecSpace(WordVecSpaceBase):
 
         return np.multiply(vecs.T, mags).T
 
-    def get_distance(self, word_or_index1: Union[int, str],
-                     word_or_index2: Union[int, str], metric: str='cosine') -> float:
+    def get_distance(
+        self,
+        word_or_index1: Union[int, str],
+        word_or_index2: Union[int, str],
+        metric: str = "cosine",
+    ) -> float:
 
         w1 = word_or_index1
         w2 = word_or_index2
@@ -148,13 +156,13 @@ class WordVecSpace(WordVecSpaceBase):
         if not metric:
             metric = self.metric
 
-        if metric == 'cosine' or 'angular':
+        if metric == "cosine" or "angular":
             vec1 = self._check_vec(w1, True)
             vec2 = self._check_vec(w2, True)
 
             return 1 - np.dot(vec1, vec2.T)
 
-        elif metric == 'euclidean':
+        elif metric == "euclidean":
             vec1 = self._check_vec(w1)
             vec2 = self._check_vec(w2)
 
@@ -173,17 +181,19 @@ class WordVecSpace(WordVecSpaceBase):
 
         return m, r, c
 
-    def get_distances(self,
-                    row_words_or_indices: Union[list, np.ndarray],
-                    col_words_or_indices: Union[list, None, np.ndarray]=None,
-                    metric=None) -> np.ndarray:
+    def get_distances(
+        self,
+        row_words_or_indices: Union[list, np.ndarray],
+        col_words_or_indices: Union[list, None, np.ndarray] = None,
+        metric=None,
+    ) -> np.ndarray:
 
         r = row_words_or_indices
         c = col_words_or_indices
 
         metric, r, c = self._check_r_and_c(r, c, metric)
 
-        if metric == 'cosine' or 'angular':
+        if metric == "cosine" or "angular":
             row_vectors = self._check_vec(r, True)
 
             col_vectors = self.vecs
@@ -193,16 +203,20 @@ class WordVecSpace(WordVecSpaceBase):
             if len(r) == 1:
                 nvecs, dim = col_vectors.shape
 
-                vec_out = self._make_array((len(col_vectors), len(row_vectors)), dtype=np.float32)
+                vec_out = self._make_array(
+                    (len(col_vectors), len(row_vectors)), dtype=np.float32
+                )
                 res = self._perform_sgemv(row_vectors, col_vectors, vec_out, nvecs, dim)
 
             else:
-                mat_out = self._make_array((len(row_vectors), len(col_vectors)), dtype=np.float32)
+                mat_out = self._make_array(
+                    (len(row_vectors), len(col_vectors)), dtype=np.float32
+                )
                 res = self._perform_sgemm(row_vectors, col_vectors, mat_out)
 
             return 1 - res
 
-        elif metric == 'euclidean':
+        elif metric == "euclidean":
             row_vectors = self._check_vec(r)
 
             if c:
@@ -210,7 +224,7 @@ class WordVecSpace(WordVecSpaceBase):
             else:
                 col_vectors = self.vecs
 
-            return distance.cdist(row_vectors, col_vectors, 'euclidean')
+            return distance.cdist(row_vectors, col_vectors, "euclidean")
 
     def _nearest_sorting(self, d, k):
 
@@ -231,12 +245,15 @@ class WordVecSpace(WordVecSpaceBase):
 
         return ner, dist
 
-    def get_nearest(self, v_w_i: list,
-                    k: int=DEFAULT_K,
-                    distances: bool=False,
-                    combination: bool=False,
-                    weights: list=None,
-                    metric: str='cosine') -> np.ndarray:
+    def get_nearest(
+        self,
+        v_w_i: list,
+        k: int = DEFAULT_K,
+        distances: bool = False,
+        combination: bool = False,
+        weights: list = None,
+        metric: str = "cosine",
+    ) -> np.ndarray:
 
         d = self.get_distances(v_w_i, metric=metric)
 
@@ -256,7 +273,11 @@ class WordVecSpace(WordVecSpaceBase):
 
         nearest_indices, dist = self._nearest_sorting(d, k)
 
-        if isinstance(v_w_i, (list, tuple)) or isinstance(v_w_i, np.ndarray) and len(v_w_i) > 1:
+        if (
+            isinstance(v_w_i, (list, tuple))
+            or isinstance(v_w_i, np.ndarray)
+            and len(v_w_i) > 1
+        ):
             return (nearest_indices, dist) if distances else nearest_indices
 
         else:

@@ -5,8 +5,8 @@ import skcuda.cublas as cublas
 
 from .mem import WordVecSpaceMem
 
-class CudaWordVecSpaceMem(WordVecSpaceMem):
 
+class CudaWordVecSpaceMem(WordVecSpaceMem):
     def __init__(self, input_dir, metric=METRIC):
         super().__init__(input_dir, metric)
 
@@ -20,7 +20,7 @@ class CudaWordVecSpaceMem(WordVecSpaceMem):
         return dot(v1, v2)
 
     def _perform_sgemv(self, mat, v, vec_out, nvecs, dim):
-        '''
+        """
         NOTES: cuBLAS uses Fortran layout
         cublas_sgemv is used to multiply matrix and vector (LEVEl 2 BLAS)
 
@@ -38,7 +38,7 @@ class CudaWordVecSpaceMem(WordVecSpaceMem):
         incY            -> Stride within Y. For example, if incx is 7, every 7th element is used
 
         Readmore        -> http://docs.nvidia.com/cuda/cublas/#cublas-lt-t-gt-gemv
-        '''
+        """
         alpha = np.float32(1.0)
         beta = np.float32(0.0)
 
@@ -47,18 +47,20 @@ class CudaWordVecSpaceMem(WordVecSpaceMem):
 
         cublas_handle = cublas.cublasCreate()
 
-        cublas.cublasSgemv(cublas_handle,
-                           't',
-                           dim,
-                           nvecs,
-                           alpha,
-                           mat.gpudata,
-                           dim,
-                           v.gpudata,
-                           incx,
-                           beta,
-                           vec_out.gpudata,
-                           incy)
+        cublas.cublasSgemv(
+            cublas_handle,
+            "t",
+            dim,
+            nvecs,
+            alpha,
+            mat.gpudata,
+            dim,
+            v.gpudata,
+            incx,
+            beta,
+            vec_out.gpudata,
+            incy,
+        )
 
         cublas.cublasDestroy(cublas_handle)
 
@@ -71,7 +73,7 @@ class CudaWordVecSpaceMem(WordVecSpaceMem):
         alpha = np.float32(1.0)
         beta = np.float32(0.0)
 
-        '''
+        """
         cublas_sgemm is used to  multiply matrix and matrix(LEVEL 3 BLAS)
 
         cublas_handle   -> handle to the cuBLAS-library context
@@ -90,30 +92,34 @@ class CudaWordVecSpaceMem(WordVecSpaceMem):
         nvecs_b         -> rows of mat_b
 
         Read more       -> http://docs.nvidia.com/cuda/cublas/#cublas-lt-t-gt-gemm
-        '''
+        """
 
         cublas_handle = cublas.cublasCreate()
 
-        cublas.cublasSgemm(cublas_handle,
-                           't',
-                           'n',
-                           nvecs_b,
-                           nvecs_a,
-                           dim,
-                           alpha,
-                           mat_b.gpudata,
-                           dim,
-                           mat_a.gpudata,
-                           dim,
-                           beta,
-                           mat_out.gpudata,
-                           nvecs_b)
+        cublas.cublasSgemm(
+            cublas_handle,
+            "t",
+            "n",
+            nvecs_b,
+            nvecs_a,
+            dim,
+            alpha,
+            mat_b.gpudata,
+            dim,
+            mat_a.gpudata,
+            dim,
+            beta,
+            mat_out.gpudata,
+            nvecs_b,
+        )
         cublas.cublasDestroy(cublas_handle)
 
         return mat_out
 
     def get_distances(self, row_words, col_words=None, raise_exc=False):
-        dvec = super(CudaWordVecSpaceMem, self).get_distances(row_words, col_words, raise_exc)
+        dvec = super(CudaWordVecSpaceMem, self).get_distances(
+            row_words, col_words, raise_exc
+        )
         return dvec.get()
 
 

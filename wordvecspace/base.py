@@ -2,6 +2,7 @@ from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
+
 class WordVecSpaceBase(object):
     __metaclass__ = ABCMeta
 
@@ -44,7 +45,7 @@ class WordVecSpaceBase(object):
     @abstractmethod
     def get_magnitudes(self, words_or_indices):
         pass
-    
+
     @abstractmethod
     def get_occurrence(self, word_or_index):
         pass
