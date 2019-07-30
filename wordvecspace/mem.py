@@ -1,5 +1,6 @@
 from .wvspace import WordVecSpace
 
+
 class WordVecSpaceMem(WordVecSpace):
     METRIC = WordVecSpace.METRIC
 

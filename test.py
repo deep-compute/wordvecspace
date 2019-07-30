@@ -9,6 +9,7 @@ from wordvecspace import annoy
 from wordvecspace import disk
 from wordvecspace import wvspace
 
+
 def suite_test():
     suite = unittest.TestSuite()
 
@@ -19,6 +20,7 @@ def suite_test():
     suite.addTests(doctest.DocTestSuite(wvspace))
 
     return suite
+
 
 if __name__ == "__main__":
     doctest.testmod(fileformat)
