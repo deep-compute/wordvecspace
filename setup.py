@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = "0.5.4"
+version = "0.5.5"
 setup(
     name="wordvecspace",
     python_requires=">3.5.1",
@@ -23,6 +23,7 @@ setup(
         "diskdict==0.2.2",
         "deeputil==0.2.5",
         "bottleneck==1.2.1",
+        "pandas==0.23.4",
     ],
     extras_require={
         "cuda": ["pycuda==2018.1.1", "scikit-cuda==0.5.1"],
