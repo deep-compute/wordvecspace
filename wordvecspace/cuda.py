@@ -116,10 +116,8 @@ class CudaWordVecSpaceMem(WordVecSpaceMem):
 
         return mat_out
 
-    def get_distances(self, row_words, col_words=None, raise_exc=False):
-        dvec = super(CudaWordVecSpaceMem, self).get_distances(
-            row_words, col_words, raise_exc
-        )
+    def get_distances(self, row_words, col_words=None):
+        dvec = super(CudaWordVecSpaceMem, self).get_distances(row_words, col_words)
         return dvec.get()
 
 

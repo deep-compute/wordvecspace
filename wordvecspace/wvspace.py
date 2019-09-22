@@ -1,9 +1,9 @@
 import os
 import json
 from typing import Union
-
 from scipy.spatial import distance
 import numpy as np
+import pandas as pd
 import bottleneck
 
 from .fileformat import WordVecSpaceFile
@@ -60,9 +60,9 @@ class WordVecSpace(WordVecSpaceBase):
 
         return w
 
-    def _check_vec(self, v, normalised=False):
+    def _check_vec(self, v, normalized=False):
         if isinstance(v, np.ndarray) and len(v.shape) == 2 and v.dtype == np.float32:
-            if normalised:
+            if normalized:
                 m = np.linalg.norm(v)
                 return v / m
 
@@ -70,9 +70,9 @@ class WordVecSpace(WordVecSpaceBase):
 
         else:
             if isinstance(v, (list, tuple)):
-                return self.get_vectors(v, normalized=normalised)
+                return self.get_vectors(v, normalized=normalized)
 
-            return self.get_vector(v, normalized=normalised)
+            return self.get_vector(v, normalized=normalized)
 
     def get_manifest(self) -> dict:
         manifest_info = open(os.path.join(self.input_dir, "manifest.json"), "r")
@@ -148,6 +148,7 @@ class WordVecSpace(WordVecSpaceBase):
         word_or_index1: Union[int, str],
         word_or_index2: Union[int, str],
         metric: str = "cosine",
+        normalized: bool = True,
     ) -> float:
 
         w1 = word_or_index1
@@ -156,9 +157,9 @@ class WordVecSpace(WordVecSpaceBase):
         if not metric:
             metric = self.metric
 
-        if metric == "cosine" or "angular":
-            vec1 = self._check_vec(w1, True)
-            vec2 = self._check_vec(w2, True)
+        if metric in ("cosine", "angular"):
+            vec1 = self._check_vec(w1, normalized)
+            vec2 = self._check_vec(w2, normalized)
 
             return 1 - np.dot(vec1, vec2.T)
 
@@ -186,6 +187,7 @@ class WordVecSpace(WordVecSpaceBase):
         row_words_or_indices: Union[list, np.ndarray],
         col_words_or_indices: Union[list, None, np.ndarray] = None,
         metric=None,
+        normalized: bool = True,
     ) -> np.ndarray:
 
         r = row_words_or_indices
@@ -193,12 +195,12 @@ class WordVecSpace(WordVecSpaceBase):
 
         metric, r, c = self._check_r_and_c(r, c, metric)
 
-        if metric == "cosine" or "angular":
-            row_vectors = self._check_vec(r, True)
+        if metric in ("cosine", "angular"):
+            row_vectors = self._check_vec(r, normalized)
 
             col_vectors = self.vecs
             if c is not None and len(c):
-                col_vectors = self._check_vec(c, True)
+                col_vectors = self._check_vec(c, normalized)
 
             if len(r) == 1:
                 nvecs, dim = col_vectors.shape
@@ -214,6 +216,10 @@ class WordVecSpace(WordVecSpaceBase):
                 )
                 res = self._perform_sgemm(row_vectors, col_vectors, mat_out)
 
+            if not normalized:
+                res = np.multiply(res, self.mags)
+                return res
+
             return 1 - res
 
         elif metric == "euclidean":
@@ -226,19 +232,25 @@ class WordVecSpace(WordVecSpaceBase):
 
             return distance.cdist(row_vectors, col_vectors, "euclidean")
 
-    def _nearest_sorting(self, d, k):
+    def _nearest_sorting(self, d, k, normalized=True):
 
         ner = self._make_array(shape=(len(d), k), dtype=np.uint32)
         dist = self._make_array(shape=(len(d), k), dtype=np.float32)
 
         for index, p in enumerate(d):
-            # FIXME: better variable name for b_sort
-            b_sort = bottleneck.argpartition(p, k)[:k]
-            pr_dist = np.take(p, b_sort)
+            if normalized:
+                # FIXME: better variable name for b_sort
+                b_sort = bottleneck.argpartition(p, k)[:k]
+                pr_dist = np.take(p, b_sort)
 
-            # FIXME: better variable name for a_sorted
-            a_sorted = np.argsort(pr_dist)
-            indices = np.take(b_sort, a_sorted)
+                # FIXME: better variable name for a_sorted
+                a_sorted = np.argsort(pr_dist)
+                indices = np.take(b_sort, a_sorted)
+
+            else:
+                d = pd.Series(p)
+                d = d.nlargest(k)
+                indices = d.keys()
 
             ner[index] = indices
             dist[index] = np.take(p, indices)
@@ -253,9 +265,10 @@ class WordVecSpace(WordVecSpaceBase):
         combination: bool = False,
         weights: list = None,
         metric: str = "cosine",
+        normalized: bool = True,
     ) -> np.ndarray:
 
-        d = self.get_distances(v_w_i, metric=metric)
+        d = self.get_distances(v_w_i, metric=metric, normalized=normalized)
 
         if not weights:
             weights = np.ones(len(v_w_i))
@@ -263,7 +276,9 @@ class WordVecSpace(WordVecSpaceBase):
         if combination and len(weights) == len(v_w_i):
             weights = np.array(weights)
             w_d = np.dot(weights, d)
-            nearest_indices, dist = self._nearest_sorting(w_d.reshape(1, len(w_d)), k)
+            nearest_indices, dist = self._nearest_sorting(
+                w_d.reshape(1, len(w_d)), k, normalized
+            )
 
             if distances:
                 return nearest_indices, dist
@@ -271,7 +286,7 @@ class WordVecSpace(WordVecSpaceBase):
             else:
                 return nearest_indices
 
-        nearest_indices, dist = self._nearest_sorting(d, k)
+        nearest_indices, dist = self._nearest_sorting(d, k, normalized)
 
         if (
             isinstance(v_w_i, (list, tuple))

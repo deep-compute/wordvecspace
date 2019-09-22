@@ -145,15 +145,14 @@ class APIFunctions(object):
         get_vectors(["hi", "inidia"]) => [[[ 0.6342  0.2268 -0.3904  0.0368  0.6266], [ 0.      0.      0.      0.      0.    ]]
         """
 
-        return self.wv.get_vectors(
-            words_or_indices, normalized=normalized, raise_exc=raise_exc
-        ).tolist()
+        return self.wv.get_vectors(words_or_indices, normalized=normalized).tolist()
 
     def get_distance(
         self,
         word_or_index1: Union[str, int],
         word_or_index2: Union[str, int],
         metric: str = "angular",
+        normalized: bool = True,
     ) -> float:
         """
         Get cosine distance between two words
@@ -163,7 +162,9 @@ class APIFunctions(object):
         """
 
         if self._type == "mem" or "disk":
-            return self.wv.get_distance(word_or_index1, word_or_index2, metric=metric)
+            return self.wv.get_distance(
+                word_or_index1, word_or_index2, metric=metric, normalized=normalized
+            )
 
         return self.wv.get_distance(word_or_index1, word_or_index2)
 
@@ -172,6 +173,7 @@ class APIFunctions(object):
         row_words_or_indices: Union[str, int, tuple, list],
         col_words_or_indices: Union[list, None] = None,
         metric: str = "angular",
+        normalized: bool = True,
     ) -> list:
         """
         Get distances between given words and all words in the vector space
@@ -191,7 +193,10 @@ class APIFunctions(object):
         c = col_words_or_indices
         if self._type == "mem" or "disk":
             return self.wv.get_distances(
-                row_words_or_indices, col_words_or_indices=c, metric=metric
+                row_words_or_indices,
+                col_words_or_indices=c,
+                metric=metric,
+                normalized=normalized,
             ).tolist()
 
         return self.wv.get_distances(
@@ -203,7 +208,9 @@ class APIFunctions(object):
         v_w_i: Union[str, int, list, tuple],
         k: int = 512,
         metric: str = "angular",
+        distances: bool = False,
         combination: bool = False,
+        normalized: bool = True,
     ) -> list:
         """
         get_nearest("india", 20) => [509, 3389, 486, 523, 7125, 16619, 4491, 12191, 6866, 8776, 15232, 14208, 5998, 21916, 5226, 6322, 4343, 6212, 10172, 6186]
@@ -211,11 +218,18 @@ class APIFunctions(object):
         get_nearest(['india', 'bosnia'], 10, combination=True) => [523, 509, 486]
         """
         if self._type == "mem" or self._type == "disk":
-            neg = self.wv.get_nearest(v_w_i, k, metric=metric, combination=combination)
+            neg = self.wv.get_nearest(
+                v_w_i,
+                k,
+                metric=metric,
+                combination=combination,
+                distances=distances,
+                normalized=normalized,
+            )
             neg = neg.tolist()
 
         else:
-            neg = self.wv.get_nearest(v_w_i, k)
+            neg = self.wv.get_nearest(v_w_i, k, distances=distances)
 
         return neg
 

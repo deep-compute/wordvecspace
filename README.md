@@ -179,14 +179,6 @@ False
 >>> print(wv.get_index("inidia"))
 None
 
->>> print(wv.get_index("inidia", raise_exc=True))
-Traceback (most recent call last):
-  File "/usr/lib/python3.6/code.py", line 91, in runcode
-    exec(code, self.locals)
-  File "<console>", line 1, in <module>
-  File "/usr/local/lib/python3.6/dist-packages/wordvecspace/mem.py", line 196, in get_word_index
-    raise UnknownWord(word)
-wordvecspace.exception.UnknownWord: "inidia"
 ```
 
 ##### Get the indices of words
@@ -195,16 +187,6 @@ wordvecspace.exception.UnknownWord: "inidia"
 [1, None, 509]
 
 
->>> print(wv.get_indices(['the', 'deepcompute', 'india'], raise_exc=True))
-Traceback (most recent call last):
-  File "/usr/lib/python3.6/code.py", line 91, in runcode
-    exec(code, self.locals)
-  File "<console>", line 1, in <module>
-  File "/usr/local/lib/python3.6/dist-packages/wordvecspace/mem.py", line 209, in get_word_indices
-    index = self.get_word_index(word, raise_exc=raise_exc)
-  File "/usr/local/lib/python3.6/dist-packages/wordvecspace/mem.py", line 196, in get_word_index
-    raise UnknownWord(word)
-wordvecspace.exception.UnknownWord: "deepcompute"
 ```
 
 ##### Get Word at Index
@@ -262,19 +244,6 @@ None
 >>> print(wv.get_vector("india", normalized=True))
 [-0.7871 -0.2993  0.3233 -0.2864  0.323 ]
 
-# Get the word vector for a word inidia.
->>> print(wv.get_vector('inidia', raise_exc=True))
-Traceback (most recent call last):
-  File "/usr/lib/python3.6/code.py", line 91, in runcode
-    exec(code, self.locals)
-  File "<console>", line 1, in <module>
-  File "/usr/local/lib/python3.6/dist-packages/wordvecspace/mem.py", line 287, in get_word_vector
-    index = self.get_word_index(word, raise_exc)
-  File "/usr/local/lib/python3.6/dist-packages/wordvecspace/mem.py", line 196, in get_word_index
-    raise UnknownWord(word)
-wordvecspace.exception.UnknownWord: "inidia"
-
-# If you don't want to get exception when word is not there, then you can simply discard raise_exc=True
 >>> print(wv.get_vector('inidia'))
 [ 0.  0.  0.  0.  0.]
 ```
