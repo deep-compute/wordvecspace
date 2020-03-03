@@ -1,5 +1,6 @@
 import os
 import json
+import math
 from datetime import datetime
 
 import numpy as np
@@ -192,7 +193,7 @@ class GW2VectoWordVecSpaceFile(object):
         vecs = self._iter_vecs(inp_vecs, vocab_file)
         N = self.nvecs_per_shard
         if N:
-            num_shards = int(nvecs / N) + 1
+            num_shards = math.ceil(nvecs/N)
         else:
             num_shards = 1
 
