@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = "0.5.5"
+version = "0.5.6"
 setup(
     name="wordvecspace",
     python_requires=">3.5.1",
