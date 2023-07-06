@@ -18,7 +18,7 @@ setup(
     license="MIT License",
     install_requires=[
         "annoy==1.11.4",
-        "scipy==1.0.0",
+        "scipy==1.10.0",
         "diskarray==0.1.8",
         "diskdict==0.2.2",
         "deeputil==0.2.5",
